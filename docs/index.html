@@ -112,45 +112,58 @@
       font-weight: 600;
     }
 
-    /* レスポンシブ */
+    /* ドラッグハンドル（モバイル専用） */
+    #drag-handle { display: none; }
+
+    /* レスポンシブ: ボトムシート */
     @media (max-width: 768px) {
-      body { flex-direction: column-reverse; }
-      #map { width: 100%; height: 55vh; flex: none; }
+      body { flex-direction: column; position: relative; overflow: hidden; }
+      #map { position: absolute; top: 0; left: 0; width: 100%; height: 100vh; z-index: 1; }
       #sidebar {
-        width: 100%; min-width: auto; height: 45vh;
-        border-right: none; border-top: 2px solid #dee2e6;
-        transition: height 0.3s ease;
+        position: absolute; bottom: 0; left: 0; right: 0; z-index: 1000;
+        width: 100%; min-width: auto; height: 40vh;
+        border-right: none; border-radius: 16px 16px 0 0;
+        box-shadow: 0 -4px 20px rgba(0,0,0,0.15);
+        transition: height 0.25s ease; overflow: hidden;
       }
-      #sidebar.filters-open { height: 85vh; }
-      #sidebar-header { padding: 10px 16px; }
-      #sidebar-header h1 { font-size: 15px; }
+      #drag-handle {
+        display: flex; justify-content: center; align-items: center;
+        padding: 8px 0 4px 0; cursor: grab; touch-action: none;
+        background: #f8f9fa; border-radius: 16px 16px 0 0;
+      }
+      #drag-handle .handle-bar { width: 40px; height: 5px; background: #adb5bd; border-radius: 3px; }
+      #sidebar-header { padding: 6px 16px; }
+      #sidebar-header h1 { font-size: 14px; margin-bottom: 2px; }
+      #sidebar-header .subtitle { font-size: 11px; }
+      #result-count { padding: 4px 16px; font-size: 12px; }
       #filters { max-height: none; padding: 16px; overflow-y: auto; }
-      #filter-toggle { padding: 12px 16px; font-size: 15px; text-align: center; }
-      .filter-group { margin-bottom: 16px; }
-      .filter-group > label { font-size: 15px; margin-bottom: 8px; }
-      .range-slider { gap: 10px; }
-      .range-slider input[type="number"] {
-        width: 100px; padding: 10px 12px; font-size: 16px; border-radius: 6px;
-      }
-      .range-slider span { font-size: 14px; }
-      .checkbox-group { gap: 10px 16px; }
-      .checkbox-group label { font-size: 15px; padding: 6px 0; min-height: 44px; }
+      #filter-toggle { padding: 10px 16px; font-size: 15px; text-align: center; }
+      .filter-group { margin-bottom: 14px; }
+      .filter-group > label { font-size: 15px; margin-bottom: 6px; }
+      .range-slider input[type="number"] { width: 90px; padding: 10px; font-size: 16px; border-radius: 6px; }
+      .checkbox-group { gap: 8px 14px; }
+      .checkbox-group label { font-size: 15px; padding: 4px 0; min-height: 40px; }
       .checkbox-group input[type="checkbox"] { width: 22px; height: 22px; min-width: 22px; }
-      .btn-reset { padding: 14px; font-size: 15px; border-radius: 8px; margin-top: 8px; }
-      #sort-bar select { font-size: 15px; padding: 8px; }
-      .property-card .price { font-size: 19px; }
-      .property-card .details { font-size: 13px; }
-      .score-badge { font-size: 12px; padding: 3px 8px; }
-      .leaflet-popup-content { min-width: 240px; max-width: 300px; }
-      .popup-title { font-size: 14px; }
-      .popup-price { font-size: 18px; }
-      .popup-details { font-size: 12px; line-height: 1.6; }
-      .popup-link a { font-size: 14px; }
+      .btn-reset { padding: 12px; font-size: 15px; border-radius: 8px; }
+      #sort-bar { padding: 6px 16px; }
+      #sort-bar select { font-size: 14px; padding: 6px; }
+      .property-card { padding: 10px 16px; }
+      .property-card .name { font-size: 13px; margin-bottom: 2px; }
+      .property-card .price { font-size: 16px; margin-bottom: 2px; }
+      .property-card .details { font-size: 11px; line-height: 1.4; }
+      .property-card .scores { margin-top: 4px; gap: 4px; }
+      .score-badge { font-size: 10px; padding: 2px 6px; }
+      .leaflet-popup-content { min-width: 220px; max-width: 280px; }
+      .popup-title { font-size: 13px; }
+      .popup-price { font-size: 17px; margin-bottom: 4px; }
+      .popup-details { font-size: 11px; line-height: 1.5; }
+      .popup-link a { font-size: 13px; }
     }
   </style>
 </head>
 <body>
   <div id="sidebar">
+    <div id="drag-handle"><div class="handle-bar"></div></div>
     <div id="sidebar-header">
       <h1>🏠 赤羽エリア 戸建て物件マップ（8000万円以下）</h1>
       <div class="subtitle">調査日: 2026-03-24</div>
@@ -513,15 +526,15 @@
       if (marker) {
         if (window.innerWidth <= 768) {
           const filters = document.getElementById('filters');
-          const sidebar = document.getElementById('sidebar');
           if (!filters.classList.contains('collapsed')) {
             filters.classList.add('collapsed');
             document.getElementById('filter-toggle').textContent = '▶ 絞り込み条件';
-            sidebar.classList.remove('filters-open');
+            document.getElementById('property-list').style.display = '';
           }
+          setSidebarHeight(15);
           setTimeout(() => {
-            map.invalidateSize();
-            setTimeout(() => { map.setView(marker.getLatLng(), 16); marker.openPopup(); }, 100);
+            map.setView(marker.getLatLng(), 16);
+            marker.openPopup();
           }, 350);
         } else {
           map.setView(marker.getLatLng(), 16);
@@ -574,14 +587,62 @@
     function toggleFilters() {
       const el = document.getElementById('filters');
       const toggle = document.getElementById('filter-toggle');
-      const sidebar = document.getElementById('sidebar');
+      const propList = document.getElementById('property-list');
       el.classList.toggle('collapsed');
       const isOpen = !el.classList.contains('collapsed');
       toggle.textContent = isOpen ? '▼ 絞り込み条件を閉じる' : '▶ 絞り込み条件';
       if (window.innerWidth <= 768) {
-        sidebar.classList.toggle('filters-open', isOpen);
-        setTimeout(() => map.invalidateSize(), 350);
+        propList.style.display = isOpen ? 'none' : '';
+        setSidebarHeight(isOpen ? 85 : 40);
       }
+    }
+
+    // ========================================
+    // モバイル: ボトムシート ドラッグ操作
+    // ========================================
+    let isDragging = false, startY = 0, startH = 0;
+    const SNAP_POINTS = [15, 40, 85];
+
+    function setSidebarHeight(vh) {
+      const sidebar = document.getElementById('sidebar');
+      sidebar.style.height = vh + 'vh';
+      setTimeout(() => map.invalidateSize(), 300);
+    }
+
+    function snapToNearest(vh) {
+      return SNAP_POINTS.reduce((a, b) => Math.abs(b - vh) < Math.abs(a - vh) ? b : a);
+    }
+
+    function initDragHandle() {
+      if (window.innerWidth > 768) return;
+      const handle = document.getElementById('drag-handle');
+      const sidebar = document.getElementById('sidebar');
+
+      handle.addEventListener('touchstart', (e) => {
+        isDragging = true;
+        startY = e.touches[0].clientY;
+        startH = (sidebar.offsetHeight / window.innerHeight) * 100;
+        sidebar.style.transition = 'none';
+        e.preventDefault();
+      }, { passive: false });
+
+      document.addEventListener('touchmove', (e) => {
+        if (!isDragging) return;
+        const deltaY = startY - e.touches[0].clientY;
+        const deltaVh = (deltaY / window.innerHeight) * 100;
+        const newH = Math.max(10, Math.min(90, startH + deltaVh));
+        sidebar.style.height = newH + 'vh';
+      }, { passive: true });
+
+      document.addEventListener('touchend', () => {
+        if (!isDragging) return;
+        isDragging = false;
+        const sidebar = document.getElementById('sidebar');
+        sidebar.style.transition = 'height 0.25s ease';
+        const currentVh = (sidebar.offsetHeight / window.innerHeight) * 100;
+        const snapped = snapToNearest(currentVh);
+        setSidebarHeight(snapped);
+      });
     }
 
     function resetFilters() {
@@ -646,6 +707,7 @@
     // ========================================
     initFilterUI();
     applyFilters();
+    initDragHandle();
 
     // モバイルではフィルターをデフォルトで閉じる
     if (window.innerWidth <= 768) {
