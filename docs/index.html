@@ -1,0 +1,899 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>物件マップ - 東京都世田谷区</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Segoe UI', 'Hiragino Sans', 'Meiryo', sans-serif; display: flex; height: 100vh; }
+
+    /* サイドバー */
+    #sidebar {
+      width: 380px; min-width: 380px; height: 100vh;
+      background: #f8f9fa; border-right: 1px solid #dee2e6;
+      display: flex; flex-direction: column; overflow: hidden;
+    }
+    #sidebar-header {
+      padding: 16px; background: #343a40; color: white;
+    }
+    #sidebar-header h1 { font-size: 18px; margin-bottom: 4px; }
+    #sidebar-header .subtitle { font-size: 13px; color: #adb5bd; }
+    #result-count {
+      padding: 8px 16px; background: #e9ecef; font-size: 13px;
+      font-weight: 600; border-bottom: 1px solid #dee2e6;
+    }
+
+    /* フィルターパネル */
+    #filters {
+      padding: 12px 16px; border-bottom: 1px solid #dee2e6;
+      overflow-y: auto; max-height: 45vh;
+    }
+    #filters.collapsed { display: none; }
+    #filter-toggle {
+      padding: 8px 16px; cursor: pointer; background: #e9ecef;
+      border-bottom: 1px solid #dee2e6; font-size: 13px; font-weight: 600;
+      user-select: none;
+    }
+    #filter-toggle:hover { background: #dee2e6; }
+    .filter-group { margin-bottom: 12px; }
+    .filter-group label { display: block; font-size: 12px; font-weight: 600; color: #495057; margin-bottom: 4px; }
+    .range-slider { display: flex; align-items: center; gap: 8px; }
+    .range-slider input[type="number"] {
+      width: 80px; padding: 4px 6px; border: 1px solid #ced4da;
+      border-radius: 4px; font-size: 12px;
+    }
+    .checkbox-group { display: flex; flex-wrap: wrap; gap: 4px 12px; }
+    .checkbox-group label { font-size: 12px; font-weight: normal; display: flex; align-items: center; gap: 4px; }
+    .btn-reset {
+      padding: 6px 12px; background: #6c757d; color: white; border: none;
+      border-radius: 4px; font-size: 12px; cursor: pointer; width: 100%;
+    }
+    .btn-reset:hover { background: #5a6268; }
+
+    /* ソート */
+    #sort-bar {
+      padding: 8px 16px; border-bottom: 1px solid #dee2e6;
+      display: flex; align-items: center; gap: 8px;
+    }
+    #sort-bar label { font-size: 12px; font-weight: 600; }
+    #sort-bar select { font-size: 12px; padding: 4px; flex: 1; }
+
+    /* 物件リスト */
+    #property-list { flex: 1; overflow-y: auto; }
+    .property-card {
+      padding: 12px 16px; border-bottom: 1px solid #dee2e6;
+      cursor: pointer; transition: background 0.15s;
+    }
+    .property-card:hover { background: #e9ecef; }
+    .property-card.active { background: #d4edda; border-left: 3px solid #28a745; }
+    .property-card .name {
+      font-size: 14px; font-weight: 600; margin-bottom: 4px;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .property-card .name a { color: #0d6efd; text-decoration: none; }
+    .property-card .name a:hover { text-decoration: underline; }
+    .property-card .price { font-size: 18px; font-weight: 700; color: #dc3545; margin-bottom: 4px; }
+    .property-card .details { font-size: 12px; color: #6c757d; line-height: 1.6; }
+    .property-card .scores {
+      display: flex; gap: 8px; margin-top: 6px; flex-wrap: wrap;
+    }
+    .score-badge {
+      font-size: 11px; padding: 2px 6px; border-radius: 10px;
+      font-weight: 600;
+    }
+    .score-value { background: #e8f5e9; color: #2e7d32; }
+    .score-location { background: #e3f2fd; color: #1565c0; }
+    .score-risk { background: #fff3e0; color: #e65100; }
+    .score-total { background: #f3e5f5; color: #7b1fa2; }
+    .warning-flags { margin-top: 4px; }
+    .warning-flag { font-size: 11px; margin-right: 4px; }
+
+    /* 地図 */
+    #map { flex: 1; height: 100vh; }
+
+    /* ポップアップ */
+    .leaflet-popup-content { min-width: 280px; }
+    .popup-title { font-size: 15px; font-weight: 700; margin-bottom: 6px; }
+    .popup-title a { color: #0d6efd; text-decoration: none; }
+    .popup-title a:hover { text-decoration: underline; }
+    .popup-price { font-size: 20px; font-weight: 700; color: #dc3545; margin-bottom: 8px; }
+    .popup-details { font-size: 13px; line-height: 1.8; }
+    .popup-details td:first-child { font-weight: 600; padding-right: 12px; color: #495057; }
+    .popup-scores {
+      margin-top: 8px; padding-top: 8px; border-top: 1px solid #dee2e6;
+      display: flex; gap: 6px; flex-wrap: wrap;
+    }
+    .popup-warnings { margin-top: 6px; font-size: 12px; }
+    .popup-link { margin-top: 8px; text-align: right; }
+    .popup-link a {
+      font-size: 13px; color: #0d6efd; text-decoration: none;
+      font-weight: 600;
+    }
+
+    /* レスポンシブ */
+    @media (max-width: 768px) {
+      body { flex-direction: column; }
+      #sidebar { width: 100%; min-width: auto; height: 50vh; }
+      #map { height: 50vh; }
+    }
+  </style>
+</head>
+<body>
+  <div id="sidebar">
+    <div id="sidebar-header">
+      <h1>🏠 東京都世田谷区 戸建て物件マップ</h1>
+      <div class="subtitle">調査日: 2026-03-23</div>
+    </div>
+    <div id="result-count">--件中 --件表示中</div>
+    <div id="filter-toggle" onclick="toggleFilters()">▼ 絞り込み条件</div>
+    <div id="filters">
+      <!-- 価格 -->
+      <div class="filter-group">
+        <label>💰 価格（万円）</label>
+        <div class="range-slider">
+          <input type="number" id="price-min" placeholder="下限" step="100">
+          <span>〜</span>
+          <input type="number" id="price-max" placeholder="上限" step="100">
+        </div>
+      </div>
+      <!-- 土地面積 -->
+      <div class="filter-group">
+        <label>📐 土地面積（㎡）</label>
+        <div class="range-slider">
+          <input type="number" id="land-min" placeholder="下限" step="5">
+          <span>〜</span>
+          <input type="number" id="land-max" placeholder="上限" step="5">
+        </div>
+      </div>
+      <!-- 建物面積 -->
+      <div class="filter-group">
+        <label>🏠 建物面積（㎡）</label>
+        <div class="range-slider">
+          <input type="number" id="building-min" placeholder="下限" step="5">
+          <span>〜</span>
+          <input type="number" id="building-max" placeholder="上限" step="5">
+        </div>
+      </div>
+      <!-- 築年数 -->
+      <div class="filter-group">
+        <label>📅 築年数</label>
+        <div class="range-slider">
+          <input type="number" id="age-min" placeholder="下限" step="1" min="0">
+          <span>〜</span>
+          <input type="number" id="age-max" placeholder="上限" step="1">
+          <span>年</span>
+        </div>
+      </div>
+      <!-- 駅徒歩 -->
+      <div class="filter-group">
+        <label>🚶 駅徒歩（分）</label>
+        <div class="range-slider">
+          <span>上限</span>
+          <input type="number" id="walk-max" placeholder="分" step="1" min="1">
+          <span>分以内</span>
+        </div>
+      </div>
+      <!-- 総合スコア -->
+      <div class="filter-group">
+        <label>⭐ 総合スコア（以上）</label>
+        <div class="range-slider">
+          <input type="number" id="score-min" placeholder="0" min="0" max="100" step="5">
+          <span>点以上</span>
+        </div>
+      </div>
+      <!-- 間取り -->
+      <div class="filter-group">
+        <label>🛏️ 間取り</label>
+        <div class="checkbox-group" id="rooms-filter"></div>
+      </div>
+      <!-- 情報源 -->
+      <div class="filter-group">
+        <label>📡 情報源</label>
+        <div class="checkbox-group" id="source-filter"></div>
+      </div>
+      <!-- トグル -->
+      <div class="filter-group">
+        <label>⚙️ 表示オプション</label>
+        <div class="checkbox-group">
+          <label><input type="checkbox" id="hide-warnings"> 警告物件を非表示</label>
+          <label><input type="checkbox" id="hide-old-seismic"> 旧耐震を非表示</label>
+          <label><input type="checkbox" id="filter-map-bounds"> 地図範囲で絞り込み</label>
+        </div>
+      </div>
+      <button class="btn-reset" onclick="resetFilters()">条件クリア</button>
+    </div>
+    <!-- ソート -->
+    <div id="sort-bar">
+      <label>並び替え:</label>
+      <select id="sort-select" onchange="applyFilters()">
+        <option value="score_desc">総合スコア（高い順）</option>
+        <option value="value_desc">割安度（高い順）</option>
+        <option value="price_asc">価格（安い順）</option>
+        <option value="price_desc">価格（高い順）</option>
+        <option value="land_desc">土地面積（広い順）</option>
+        <option value="age_asc">築年数（新しい順）</option>
+      </select>
+    </div>
+    <!-- 物件リスト -->
+    <div id="property-list"></div>
+  </div>
+  <div id="map"></div>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script>
+    // ========================================
+    // 物件データ（マッパーエージェントが埋め込む）
+    // ========================================
+    const PROPERTIES = [
+  {
+    "id": "suumo_1",
+    "name": "世田谷区桜1丁目 中古一戸建て",
+    "price": 7980,
+    "address": "東京都世田谷区桜1丁目",
+    "station_access": [
+      "宮の坂駅 徒歩3分"
+    ],
+    "land_sqm": 99.78,
+    "building_sqm": 106.51,
+    "rooms": "3LDK+S",
+    "built_year": 2021,
+    "age": 5,
+    "structure": null,
+    "zoning": null,
+    "road_frontage": null,
+    "rebuild_possible": null,
+    "url": "https://suumo.jp/chukoikkodate/tokyo/sc_setagaya/",
+    "source": "SUUMO",
+    "lat": 35.6454964,
+    "lng": 139.6414527,
+    "scores": {
+      "value": 66,
+      "location": 65,
+      "risk": 77,
+      "total": 68
+    },
+    "warnings": []
+  },
+  {
+    "id": "suumo_2",
+    "name": "世田谷区船橋4丁目 中古一戸建て",
+    "price": 7580,
+    "address": "東京都世田谷区船橋4丁目",
+    "station_access": [
+      "千歳船橋駅"
+    ],
+    "land_sqm": 115.02,
+    "building_sqm": null,
+    "rooms": "3LDK",
+    "built_year": 2005,
+    "age": 21,
+    "structure": null,
+    "zoning": null,
+    "road_frontage": null,
+    "rebuild_possible": null,
+    "url": "https://suumo.jp/chukoikkodate/tokyo/sc_setagaya/",
+    "source": "SUUMO",
+    "lat": 35.654657,
+    "lng": 139.6191233,
+    "scores": {
+      "value": 74,
+      "location": 56,
+      "risk": 70,
+      "total": 67
+    },
+    "warnings": []
+  },
+  {
+    "id": "suumo_5",
+    "name": "世田谷区北烏山7丁目 新築一戸建て",
+    "price": 7680,
+    "address": "東京都世田谷区北烏山7丁目",
+    "station_access": [
+      "千歳烏山駅 徒歩17分"
+    ],
+    "land_sqm": 81.68,
+    "building_sqm": 104.17,
+    "rooms": "4LDK",
+    "built_year": 2026,
+    "age": 0,
+    "structure": null,
+    "zoning": null,
+    "road_frontage": null,
+    "rebuild_possible": null,
+    "url": "https://suumo.jp/ikkodate/tokyo/sc_setagaya/",
+    "source": "SUUMO",
+    "lat": 35.675412,
+    "lng": 139.600059,
+    "scores": {
+      "value": 56,
+      "location": 44,
+      "risk": 70,
+      "total": 55
+    },
+    "warnings": []
+  },
+  {
+    "id": "suumo_8",
+    "name": "世田谷区船橋1丁目 中古一戸建て",
+    "price": 5480,
+    "address": "東京都世田谷区船橋1丁目",
+    "station_access": [
+      "千歳船橋駅 徒歩7分"
+    ],
+    "land_sqm": null,
+    "building_sqm": 63.52,
+    "rooms": "2LDK+S",
+    "built_year": 2009,
+    "age": 17,
+    "structure": null,
+    "zoning": null,
+    "road_frontage": null,
+    "rebuild_possible": null,
+    "url": "https://suumo.jp/chukoikkodate/tokyo/ek_24140/",
+    "source": "SUUMO",
+    "lat": 35.654893,
+    "lng": 139.618666,
+    "scores": {
+      "value": 39,
+      "location": 58,
+      "risk": 70,
+      "total": 53
+    },
+    "warnings": []
+  },
+  {
+    "id": "suumo_3",
+    "name": "世田谷区松原 新築一戸建て",
+    "price": 7280,
+    "address": "東京都世田谷区松原",
+    "station_access": [
+      "代田橋駅 徒歩3分"
+    ],
+    "land_sqm": null,
+    "building_sqm": null,
+    "rooms": "3LDK",
+    "built_year": 2026,
+    "age": 0,
+    "structure": null,
+    "zoning": null,
+    "road_frontage": null,
+    "rebuild_possible": null,
+    "url": "https://suumo.jp/ikkodate/tokyo/sc_setagaya/",
+    "source": "SUUMO",
+    "lat": 35.6633686,
+    "lng": 139.6492965,
+    "scores": {
+      "value": 15,
+      "location": 62,
+      "risk": 77,
+      "total": 47
+    },
+    "warnings": []
+  },
+  {
+    "id": "suumo_7",
+    "name": "世田谷区 新築一戸建て（1LDK+S）",
+    "price": 6780,
+    "address": "東京都世田谷区上野毛",
+    "station_access": [
+      "上野毛駅 徒歩10分"
+    ],
+    "land_sqm": null,
+    "building_sqm": 60.02,
+    "rooms": "1LDK+S",
+    "built_year": 2026,
+    "age": 0,
+    "structure": null,
+    "zoning": null,
+    "road_frontage": null,
+    "rebuild_possible": null,
+    "url": "https://suumo.jp/ikkodate/tokyo/sc_setagaya/",
+    "source": "SUUMO",
+    "lat": 35.613241,
+    "lng": 139.6367648,
+    "scores": {
+      "value": 23,
+      "location": 55,
+      "risk": 70,
+      "total": 46
+    },
+    "warnings": []
+  },
+  {
+    "id": "athome_1",
+    "name": "世田谷区宇奈根1丁目 新築一戸建て",
+    "price": 6180,
+    "address": "東京都世田谷区宇奈根1丁目",
+    "station_access": [
+      "二子玉川駅 バス8分+砧本村歩7分"
+    ],
+    "land_sqm": null,
+    "building_sqm": null,
+    "rooms": "3LDK",
+    "built_year": 2026,
+    "age": 0,
+    "structure": null,
+    "zoning": null,
+    "road_frontage": null,
+    "rebuild_possible": null,
+    "url": "https://www.athome.co.jp/kodate/theme/6000_7000_price/tokyo/setagaya-city/list",
+    "source": "athome",
+    "lat": 35.6192533,
+    "lng": 139.606128,
+    "scores": {
+      "value": 35,
+      "location": 45,
+      "risk": 58,
+      "total": 44
+    },
+    "warnings": [
+      "🌊 洪水ハザード高リスク"
+    ]
+  },
+  {
+    "id": "athome_2",
+    "name": "世田谷区梅丘2丁目 中古一戸建て",
+    "price": 7150,
+    "address": "東京都世田谷区梅丘2丁目",
+    "station_access": [
+      "豪徳寺駅"
+    ],
+    "land_sqm": null,
+    "building_sqm": null,
+    "rooms": "4SLDK",
+    "built_year": null,
+    "age": null,
+    "structure": null,
+    "zoning": null,
+    "road_frontage": null,
+    "rebuild_possible": null,
+    "url": "https://www.athome.co.jp/kodate/chuko/theme/7000_8000_price/tokyo/setagaya-city/list/",
+    "source": "athome",
+    "lat": 35.6503068,
+    "lng": 139.6524686,
+    "scores": {
+      "value": 18,
+      "location": 50,
+      "risk": 60,
+      "total": 40
+    },
+    "warnings": []
+  },
+  {
+    "id": "athome_3",
+    "name": "世田谷区上祖師谷3丁目 中古一戸建て",
+    "price": 7180,
+    "address": "東京都世田谷区上祖師谷3丁目",
+    "station_access": [
+      "成城学園前駅"
+    ],
+    "land_sqm": null,
+    "building_sqm": null,
+    "rooms": "4LDK",
+    "built_year": null,
+    "age": null,
+    "structure": null,
+    "zoning": null,
+    "road_frontage": null,
+    "rebuild_possible": null,
+    "url": "https://www.athome.co.jp/kodate/chuko/theme/7000_8000_price/tokyo/setagaya-city/list/",
+    "source": "athome",
+    "lat": 35.6548717,
+    "lng": 139.6009246,
+    "scores": {
+      "value": 16,
+      "location": 50,
+      "risk": 60,
+      "total": 39
+    },
+    "warnings": []
+  },
+  {
+    "id": "suumo_4",
+    "name": "世田谷区北烏山 新築一戸建て",
+    "price": 7680,
+    "address": "東京都世田谷区北烏山3丁目",
+    "station_access": [
+      "千歳烏山駅 徒歩17分"
+    ],
+    "land_sqm": null,
+    "building_sqm": 77.76,
+    "rooms": "3LDK",
+    "built_year": 2026,
+    "age": 0,
+    "structure": null,
+    "zoning": null,
+    "road_frontage": null,
+    "rebuild_possible": null,
+    "url": "https://suumo.jp/ikkodate/tokyo/sc_setagaya/nc_76696659/",
+    "source": "SUUMO",
+    "lat": 35.6759046,
+    "lng": 139.6009876,
+    "scores": {
+      "value": 8,
+      "location": 45,
+      "risk": 70,
+      "total": 36
+    },
+    "warnings": []
+  },
+  {
+    "id": "suumo_6",
+    "name": "世田谷区北烏山 新築一戸建て（80.31平米）",
+    "price": 7680,
+    "address": "東京都世田谷区北烏山",
+    "station_access": [
+      "千歳烏山駅 徒歩16分"
+    ],
+    "land_sqm": null,
+    "building_sqm": 80.31,
+    "rooms": "3LDK",
+    "built_year": 2026,
+    "age": 0,
+    "structure": null,
+    "zoning": null,
+    "road_frontage": null,
+    "rebuild_possible": null,
+    "url": "https://suumo.jp/ikkodate/tokyo/sc_setagaya/",
+    "source": "SUUMO",
+    "lat": 35.6759046,
+    "lng": 139.6009876,
+    "scores": {
+      "value": 8,
+      "location": 45,
+      "risk": 70,
+      "total": 36
+    },
+    "warnings": []
+  }
+];
+
+    // ========================================
+    // 地図初期化
+    // ========================================
+    const map = L.map('map');
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap contributors',
+      maxZoom: 19
+    }).addTo(map);
+
+    // マーカーレイヤー
+    const markerLayer = L.layerGroup().addTo(map);
+    const markers = {};
+
+    // ========================================
+    // マーカー色設定
+    // ========================================
+    function getMarkerColor(property) {
+      if (property.warnings && property.warnings.length > 0 &&
+          property.warnings.some(w => w.includes('再建築不可'))) {
+        return '#6c757d'; // グレー
+      }
+      const score = property.scores?.total ?? 50;
+      if (score >= 80) return '#28a745'; // 緑
+      if (score >= 40) return '#ffc107'; // 黄
+      return '#dc3545'; // 赤
+    }
+
+    function createMarkerIcon(color) {
+      return L.divIcon({
+        className: 'custom-marker',
+        html: `<div style="
+          width:14px;height:14px;border-radius:50%;
+          background:${color};border:2px solid white;
+          box-shadow:0 1px 4px rgba(0,0,0,0.4);
+        "></div>`,
+        iconSize: [14, 14],
+        iconAnchor: [7, 7],
+        popupAnchor: [0, -10]
+      });
+    }
+
+    // ========================================
+    // ポップアップHTML生成
+    // ========================================
+    function createPopupHTML(p) {
+      const scores = p.scores || {};
+      const warnings = (p.warnings || []).join(' ');
+      const stationText = Array.isArray(p.station_access)
+        ? p.station_access[0] : (p.station_access || '不明');
+      return `
+        <div class="popup-title"><a href="${p.url}" target="_blank">${p.name || '物件詳細'}</a></div>
+        <div class="popup-price">${p.price?.toLocaleString()}万円</div>
+        <table class="popup-details">
+          <tr><td>土地</td><td>${p.land_sqm ?? '-'}㎡</td></tr>
+          <tr><td>建物</td><td>${p.building_sqm ?? '-'}㎡</td></tr>
+          <tr><td>間取り</td><td>${p.rooms || '-'}</td></tr>
+          <tr><td>築年数</td><td>${p.age != null ? p.age + '年' : '-'}</td></tr>
+          <tr><td>構造</td><td>${p.structure || '-'}</td></tr>
+          <tr><td>最寄駅</td><td>${stationText}</td></tr>
+          <tr><td>用途地域</td><td>${p.zoning || '-'}</td></tr>
+          <tr><td>接道</td><td>${p.road_frontage || '-'}</td></tr>
+        </table>
+        <div class="popup-scores">
+          <span class="score-badge score-value">割安度: ${scores.value ?? '-'}</span>
+          <span class="score-badge score-location">立地: ${scores.location ?? '-'}</span>
+          <span class="score-badge score-risk">リスク: ${scores.risk ?? '-'}</span>
+          <span class="score-badge score-total">総合: ${scores.total ?? '-'}</span>
+        </div>
+        ${warnings ? `<div class="popup-warnings">${warnings}</div>` : ''}
+        <div class="popup-link"><a href="${p.url}" target="_blank">📄 元サイトで詳細を見る →</a></div>
+      `;
+    }
+
+    // ========================================
+    // 物件カードHTML生成
+    // ========================================
+    function createCardHTML(p, index) {
+      const scores = p.scores || {};
+      const stationText = Array.isArray(p.station_access)
+        ? p.station_access[0] : (p.station_access || '');
+      const warnings = (p.warnings || []).map(w => `<span class="warning-flag">${w}</span>`).join('');
+      return `
+        <div class="property-card" data-id="${p.id}" onclick="focusProperty('${p.id}')">
+          <div class="name">
+            <a href="${p.url}" target="_blank" onclick="event.stopPropagation()">${p.name || '物件' + (index + 1)}</a>
+            <span style="font-size:11px;color:#6c757d">${p.source || ''}</span>
+          </div>
+          <div class="price">${p.price?.toLocaleString()}万円</div>
+          <div class="details">
+            土地 ${p.land_sqm ?? '-'}㎡ / 建物 ${p.building_sqm ?? '-'}㎡ / ${p.rooms || '-'}<br>
+            築${p.age != null ? p.age + '年' : '-'} / ${stationText}
+          </div>
+          <div class="scores">
+            <span class="score-badge score-value">割安 ${scores.value ?? '-'}</span>
+            <span class="score-badge score-location">立地 ${scores.location ?? '-'}</span>
+            <span class="score-badge score-risk">リスク ${scores.risk ?? '-'}</span>
+            <span class="score-badge score-total">総合 ${scores.total ?? '-'}</span>
+          </div>
+          ${warnings ? `<div class="warning-flags">${warnings}</div>` : ''}
+        </div>
+      `;
+    }
+
+    // ========================================
+    // フィルタリング
+    // ========================================
+    function getFilterValues() {
+      return {
+        priceMin: parseFloat(document.getElementById('price-min').value) || null,
+        priceMax: parseFloat(document.getElementById('price-max').value) || null,
+        landMin: parseFloat(document.getElementById('land-min').value) || null,
+        landMax: parseFloat(document.getElementById('land-max').value) || null,
+        buildingMin: parseFloat(document.getElementById('building-min').value) || null,
+        buildingMax: parseFloat(document.getElementById('building-max').value) || null,
+        ageMin: parseFloat(document.getElementById('age-min').value) || null,
+        ageMax: parseFloat(document.getElementById('age-max').value) || null,
+        walkMax: parseFloat(document.getElementById('walk-max').value) || null,
+        scoreMin: parseFloat(document.getElementById('score-min').value) || null,
+        hideWarnings: document.getElementById('hide-warnings').checked,
+        hideOldSeismic: document.getElementById('hide-old-seismic').checked,
+        filterMapBounds: document.getElementById('filter-map-bounds').checked,
+        rooms: getCheckedValues('rooms-filter'),
+        sources: getCheckedValues('source-filter'),
+      };
+    }
+
+    function getCheckedValues(containerId) {
+      const container = document.getElementById(containerId);
+      const checked = container.querySelectorAll('input:checked');
+      if (checked.length === 0 || checked.length === container.querySelectorAll('input').length) return null;
+      return Array.from(checked).map(cb => cb.value);
+    }
+
+    function extractWalkMinutes(p) {
+      const access = Array.isArray(p.station_access) ? p.station_access[0] : p.station_access;
+      if (!access) return null;
+      const match = access.match(/徒歩(\d+)/);
+      return match ? parseInt(match[1]) : null;
+    }
+
+    function passesFilter(p, f) {
+      if (f.priceMin && (p.price == null || p.price < f.priceMin)) return false;
+      if (f.priceMax && (p.price == null || p.price > f.priceMax)) return false;
+      if (f.landMin && (p.land_sqm == null || p.land_sqm < f.landMin)) return false;
+      if (f.landMax && (p.land_sqm == null || p.land_sqm > f.landMax)) return false;
+      if (f.buildingMin && (p.building_sqm == null || p.building_sqm < f.buildingMin)) return false;
+      if (f.buildingMax && (p.building_sqm == null || p.building_sqm > f.buildingMax)) return false;
+      if (f.ageMin != null && (p.age == null || p.age < f.ageMin)) return false;
+      if (f.ageMax != null && (p.age == null || p.age > f.ageMax)) return false;
+      if (f.walkMax) {
+        const walk = extractWalkMinutes(p);
+        if (walk != null && walk > f.walkMax) return false;
+      }
+      if (f.scoreMin && (p.scores?.total == null || p.scores.total < f.scoreMin)) return false;
+      if (f.hideWarnings && p.warnings && p.warnings.length > 0) return false;
+      if (f.hideOldSeismic && p.earthquake_standard === '旧耐震') return false;
+      if (f.rooms && p.rooms && !f.rooms.some(r => p.rooms.includes(r))) return false;
+      if (f.sources && !f.sources.includes(p.source)) return false;
+      if (f.filterMapBounds) {
+        const bounds = map.getBounds();
+        if (p.lat && p.lng && !bounds.contains([p.lat, p.lng])) return false;
+      }
+      return true;
+    }
+
+    // ========================================
+    // ソート
+    // ========================================
+    function sortProperties(properties) {
+      const sortKey = document.getElementById('sort-select').value;
+      return [...properties].sort((a, b) => {
+        switch (sortKey) {
+          case 'score_desc': return (b.scores?.total ?? 0) - (a.scores?.total ?? 0);
+          case 'value_desc': return (b.scores?.value ?? 0) - (a.scores?.value ?? 0);
+          case 'price_asc': return (a.price ?? Infinity) - (b.price ?? Infinity);
+          case 'price_desc': return (b.price ?? 0) - (a.price ?? 0);
+          case 'land_desc': return (b.land_sqm ?? 0) - (a.land_sqm ?? 0);
+          case 'age_asc': return (a.age ?? Infinity) - (b.age ?? Infinity);
+          default: return 0;
+        }
+      });
+    }
+
+    // ========================================
+    // 表示更新
+    // ========================================
+    function applyFilters() {
+      const filters = getFilterValues();
+      let filtered = PROPERTIES.filter(p => passesFilter(p, filters));
+      filtered = sortProperties(filtered);
+
+      // マーカー更新
+      markerLayer.clearLayers();
+      filtered.forEach(p => {
+        if (p.lat && p.lng) {
+          const marker = L.marker([p.lat, p.lng], { icon: createMarkerIcon(getMarkerColor(p)) })
+            .bindPopup(createPopupHTML(p), { maxWidth: 350 });
+          marker.addTo(markerLayer);
+          markers[p.id] = marker;
+        }
+      });
+
+      // リスト更新
+      const listEl = document.getElementById('property-list');
+      listEl.innerHTML = filtered.map((p, i) => createCardHTML(p, i)).join('');
+
+      // カウント更新
+      document.getElementById('result-count').textContent =
+        `${PROPERTIES.length}件中 ${filtered.length}件表示中`;
+    }
+
+    // ========================================
+    // 物件フォーカス
+    // ========================================
+    function focusProperty(id) {
+      const marker = markers[id];
+      if (marker) {
+        map.setView(marker.getLatLng(), 16);
+        marker.openPopup();
+      }
+      document.querySelectorAll('.property-card').forEach(card => {
+        card.classList.toggle('active', card.dataset.id === id);
+      });
+    }
+
+    // ========================================
+    // フィルターUI初期化
+    // ========================================
+    function initFilterUI() {
+      // 間取りチェックボックス
+      const roomTypes = [...new Set(PROPERTIES.map(p => p.rooms).filter(Boolean))].sort();
+      const roomsContainer = document.getElementById('rooms-filter');
+      roomTypes.forEach(r => {
+        roomsContainer.innerHTML += `<label><input type="checkbox" value="${r}" checked onchange="applyFilters()"> ${r}</label>`;
+      });
+
+      // 情報源チェックボックス
+      const sources = [...new Set(PROPERTIES.map(p => p.source).filter(Boolean))].sort();
+      const sourceContainer = document.getElementById('source-filter');
+      sources.forEach(s => {
+        sourceContainer.innerHTML += `<label><input type="checkbox" value="${s}" checked onchange="applyFilters()"> ${s}</label>`;
+      });
+
+      // イベントリスナー
+      ['price-min','price-max','land-min','land-max','building-min','building-max',
+       'age-min','age-max','walk-max','score-min'].forEach(id => {
+        document.getElementById(id).addEventListener('input', debounce(applyFilters, 300));
+      });
+      ['hide-warnings','hide-old-seismic','filter-map-bounds'].forEach(id => {
+        document.getElementById(id).addEventListener('change', applyFilters);
+      });
+
+      // 地図範囲変更時
+      map.on('moveend', () => {
+        if (document.getElementById('filter-map-bounds').checked) applyFilters();
+      });
+    }
+
+    function debounce(fn, ms) {
+      let timer;
+      return (...args) => { clearTimeout(timer); timer = setTimeout(() => fn(...args), ms); };
+    }
+
+    function toggleFilters() {
+      const el = document.getElementById('filters');
+      const toggle = document.getElementById('filter-toggle');
+      el.classList.toggle('collapsed');
+      toggle.textContent = el.classList.contains('collapsed') ? '▶ 絞り込み条件' : '▼ 絞り込み条件';
+    }
+
+    function resetFilters() {
+      ['price-min','price-max','land-min','land-max','building-min','building-max',
+       'age-min','age-max','walk-max','score-min'].forEach(id => {
+        document.getElementById(id).value = '';
+      });
+      ['hide-warnings','hide-old-seismic','filter-map-bounds'].forEach(id => {
+        document.getElementById(id).checked = false;
+      });
+      document.querySelectorAll('#rooms-filter input, #source-filter input').forEach(cb => cb.checked = true);
+      document.getElementById('sort-select').value = 'score_desc';
+      applyFilters();
+    }
+
+    // ========================================
+    // 矩形選択（Shift+ドラッグ）
+    // ========================================
+    let rectSelect = null;
+    map.on('mousedown', function(e) {
+      if (!e.originalEvent.shiftKey) return;
+      map.dragging.disable();
+      const startLatLng = e.latlng;
+      rectSelect = L.rectangle([startLatLng, startLatLng], {
+        color: '#0d6efd', weight: 2, fillOpacity: 0.1
+      }).addTo(map);
+
+      function onMove(e2) {
+        rectSelect.setBounds([startLatLng, e2.latlng]);
+      }
+      function onUp(e2) {
+        map.off('mousemove', onMove);
+        map.off('mouseup', onUp);
+        map.dragging.enable();
+        const bounds = rectSelect.getBounds();
+        map.removeLayer(rectSelect);
+        // 範囲内の物件だけにフィルタ
+        const filters = getFilterValues();
+        let filtered = PROPERTIES.filter(p => {
+          if (!p.lat || !p.lng) return false;
+          return bounds.contains([p.lat, p.lng]) && passesFilter(p, filters);
+        });
+        filtered = sortProperties(filtered);
+        markerLayer.clearLayers();
+        filtered.forEach(p => {
+          const marker = L.marker([p.lat, p.lng], { icon: createMarkerIcon(getMarkerColor(p)) })
+            .bindPopup(createPopupHTML(p), { maxWidth: 350 });
+          marker.addTo(markerLayer);
+          markers[p.id] = marker;
+        });
+        document.getElementById('property-list').innerHTML = filtered.map((p, i) => createCardHTML(p, i)).join('');
+        document.getElementById('result-count').textContent =
+          `${PROPERTIES.length}件中 ${filtered.length}件表示中（矩形選択）`;
+        map.fitBounds(bounds);
+      }
+      map.on('mousemove', onMove);
+      map.on('mouseup', onUp);
+    });
+
+    // ========================================
+    // 初期表示
+    // ========================================
+    initFilterUI();
+    applyFilters();
+
+    // 地図の表示範囲を全マーカーに合わせる
+    if (PROPERTIES.length > 0) {
+      const validCoords = PROPERTIES.filter(p => p.lat && p.lng).map(p => [p.lat, p.lng]);
+      if (validCoords.length > 0) {
+        map.fitBounds(validCoords, { padding: [30, 30] });
+      } else {
+        map.setView([35.6462, 139.6532], 14); // デフォルト: 世田谷区中心
+      }
+    } else {
+      map.setView([35.6462, 139.6532], 14);
+    }
+  </script>
+</body>
+</html>
