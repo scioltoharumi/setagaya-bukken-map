@@ -233,6 +233,21 @@
       </div>
       <button class="btn-reset" onclick="resetFilters()">条件クリア</button>
     </div>
+    <!-- ハザードマップ -->
+    <div id="hazard-toggle" style="padding:8px 16px;border-bottom:1px solid #dee2e6;background:#fff3e0;">
+      <label style="display:block;font-size:13px;font-weight:600;color:#e65100;margin-bottom:6px;">🗺️ ハザードマップ重ねて表示</label>
+      <div style="display:flex;flex-wrap:wrap;gap:6px 14px;">
+        <label style="font-size:13px;display:flex;align-items:center;gap:4px;cursor:pointer;min-height:36px;">
+          <input type="checkbox" id="hazard-flood" onchange="toggleHazardLayer('flood', this.checked)" style="width:18px;height:18px;"> 🌊 洪水浸水想定
+        </label>
+        <label style="font-size:13px;display:flex;align-items:center;gap:4px;cursor:pointer;min-height:36px;">
+          <input type="checkbox" id="hazard-landslide" onchange="toggleHazardLayer('landslide', this.checked)" style="width:18px;height:18px;"> ⛰️ 土砂災害警戒
+        </label>
+        <label style="font-size:13px;display:flex;align-items:center;gap:4px;cursor:pointer;min-height:36px;">
+          <input type="checkbox" id="hazard-tsunami" onchange="toggleHazardLayer('tsunami', this.checked)" style="width:18px;height:18px;"> 🌊 高潮浸水想定
+        </label>
+      </div>
+    </div>
     <!-- ソート -->
     <div id="sort-bar">
       <label>並び替え:</label>
@@ -1123,6 +1138,34 @@
     // マーカーレイヤー
     const markerLayer = L.layerGroup().addTo(map);
     const markers = {};
+
+    // ========================================
+    // ハザードマップレイヤー（国土地理院 重ねるハザードマップ）
+    // ========================================
+    const hazardLayers = {
+      flood: L.tileLayer('https://disaportaldata.gsi.go.jp/raster/01_flood_l2_shinsuishin_data/{z}/{x}/{y}.png', {
+        opacity: 0.6, maxZoom: 17,
+        attribution: '国土地理院ハザードマップポータル'
+      }),
+      landslide: L.tileLayer('https://disaportaldata.gsi.go.jp/raster/05_dosekiryukeikaikuiki/{z}/{x}/{y}.png', {
+        opacity: 0.6, maxZoom: 17,
+        attribution: '国土地理院ハザードマップポータル'
+      }),
+      tsunami: L.tileLayer('https://disaportaldata.gsi.go.jp/raster/03_hightide_l2_shinsuishin_data/{z}/{x}/{y}.png', {
+        opacity: 0.6, maxZoom: 17,
+        attribution: '国土地理院ハザードマップポータル'
+      })
+    };
+
+    function toggleHazardLayer(type, show) {
+      if (show) {
+        hazardLayers[type].addTo(map);
+        // ハザードレイヤーをマーカーの下に配置
+        hazardLayers[type].bringToBack();
+      } else {
+        map.removeLayer(hazardLayers[type]);
+      }
+    }
 
     // ========================================
     // マーカー色設定
