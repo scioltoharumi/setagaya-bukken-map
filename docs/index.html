@@ -709,6 +709,10 @@
     applyFilters();
     initDragHandle();
 
+    // ハザードマップ（洪水）をデフォルトON
+    document.getElementById('hazard-flood').checked = true;
+    toggleHazardLayer('flood', true);
+
     // モバイルではフィルターをデフォルトで閉じる
     if (window.innerWidth <= 768) {
       document.getElementById('filters').classList.add('collapsed');
