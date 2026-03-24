@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>物件マップ - 東京都世田谷区（3000万円以下）</title>
+  <title>物件マップ - 東京都北区</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -112,92 +112,47 @@
       font-weight: 600;
     }
 
-    /* ドラッグハンドル（モバイル専用） */
-    #drag-handle { display: none; }
-
-    /* レスポンシブ: ボトムシート方式 */
+    /* レスポンシブ */
     @media (max-width: 768px) {
-      body { flex-direction: column; position: relative; overflow: hidden; }
-
-      /* 地図: 全画面背景 */
-      #map { position: absolute; top: 0; left: 0; width: 100%; height: 100vh; z-index: 1; }
-
-      /* サイドバー: ボトムシートとして下から重ねる */
+      body { flex-direction: column-reverse; }
+      #map { width: 100%; height: 55vh; flex: none; }
       #sidebar {
-        position: absolute; bottom: 0; left: 0; right: 0;
-        z-index: 1000;
-        width: 100%; min-width: auto;
-        height: 40vh; /* 初期位置 */
-        border-right: none;
-        border-top: none;
-        border-radius: 16px 16px 0 0;
-        box-shadow: 0 -4px 20px rgba(0,0,0,0.15);
-        transition: height 0.25s ease;
-        overflow: hidden;
+        width: 100%; min-width: auto; height: 45vh;
+        border-right: none; border-top: 2px solid #dee2e6;
+        transition: height 0.3s ease;
       }
-
-      /* ドラッグハンドル */
-      #drag-handle {
-        display: flex; justify-content: center; align-items: center;
-        padding: 8px 0 4px 0;
-        cursor: grab; touch-action: none;
-        background: #f8f9fa;
-        border-radius: 16px 16px 0 0;
-      }
-      #drag-handle .handle-bar {
-        width: 40px; height: 5px;
-        background: #adb5bd; border-radius: 3px;
-      }
-
-      #sidebar-header { padding: 6px 16px 6px; }
-      #sidebar-header h1 { font-size: 14px; margin-bottom: 2px; }
-      #sidebar-header .subtitle { font-size: 11px; }
-      #result-count { padding: 4px 16px; font-size: 12px; }
-
-      /* フィルター */
+      #sidebar.filters-open { height: 85vh; }
+      #sidebar-header { padding: 10px 16px; }
+      #sidebar-header h1 { font-size: 15px; }
       #filters { max-height: none; padding: 16px; overflow-y: auto; }
-      #filter-toggle { padding: 10px 16px; font-size: 15px; text-align: center; }
-      .filter-group { margin-bottom: 14px; }
-      .filter-group > label { font-size: 15px; margin-bottom: 6px; }
-      .range-slider { gap: 8px; }
+      #filter-toggle { padding: 12px 16px; font-size: 15px; text-align: center; }
+      .filter-group { margin-bottom: 16px; }
+      .filter-group > label { font-size: 15px; margin-bottom: 8px; }
+      .range-slider { gap: 10px; }
       .range-slider input[type="number"] {
-        width: 90px; padding: 10px; font-size: 16px; border-radius: 6px;
+        width: 100px; padding: 10px 12px; font-size: 16px; border-radius: 6px;
       }
       .range-slider span { font-size: 14px; }
-      .checkbox-group { gap: 8px 14px; }
-      .checkbox-group label { font-size: 15px; padding: 4px 0; min-height: 40px; }
+      .checkbox-group { gap: 10px 16px; }
+      .checkbox-group label { font-size: 15px; padding: 6px 0; min-height: 44px; }
       .checkbox-group input[type="checkbox"] { width: 22px; height: 22px; min-width: 22px; }
-      .btn-reset { padding: 12px; font-size: 15px; border-radius: 8px; }
-
-      /* ソート */
-      #sort-bar { padding: 6px 16px; }
-      #sort-bar label { font-size: 12px; }
-      #sort-bar select { font-size: 14px; padding: 6px; }
-
-      /* 物件カード: コンパクトに（複数件見えるように） */
-      .property-card { padding: 10px 16px; }
-      .property-card .name { font-size: 13px; margin-bottom: 2px; }
-      .property-card .price { font-size: 16px; margin-bottom: 2px; }
-      .property-card .details { font-size: 11px; line-height: 1.4; }
-      .property-card .scores { margin-top: 4px; gap: 4px; }
-      .score-badge { font-size: 10px; padding: 2px 6px; }
-      .warning-flags { margin-top: 2px; }
-
-      /* ポップアップ */
-      .leaflet-popup-content { min-width: 220px; max-width: 280px; }
-      .popup-title { font-size: 13px; }
-      .popup-price { font-size: 17px; margin-bottom: 4px; }
-      .popup-details { font-size: 11px; line-height: 1.5; }
-      .popup-scores .score-badge { font-size: 10px; }
-      .popup-link a { font-size: 13px; }
+      .btn-reset { padding: 14px; font-size: 15px; border-radius: 8px; margin-top: 8px; }
+      #sort-bar select { font-size: 15px; padding: 8px; }
+      .property-card .price { font-size: 19px; }
+      .property-card .details { font-size: 13px; }
+      .score-badge { font-size: 12px; padding: 3px 8px; }
+      .leaflet-popup-content { min-width: 240px; max-width: 300px; }
+      .popup-title { font-size: 14px; }
+      .popup-price { font-size: 18px; }
+      .popup-details { font-size: 12px; line-height: 1.6; }
+      .popup-link a { font-size: 14px; }
     }
   </style>
 </head>
 <body>
   <div id="sidebar">
-    <div id="drag-handle"><div class="handle-bar"></div></div>
     <div id="sidebar-header">
-      <h1>🏠 東京都世田谷区 戸建て物件マップ（3000万円以下）</h1>
+      <h1>🏠 東京都北区 戸建て物件マップ（8000万円以下）</h1>
       <div class="subtitle">調査日: 2026-03-24</div>
     </div>
     <div id="result-count">--件中 --件表示中</div>
@@ -302,7 +257,852 @@
     // マッパーエージェントが {{PROPERTIES_JSON}} を実データで置換する。
     // テンプレート単体で開いた場合はサンプルデータで動作する。
     // ========================================
-    const __BUKKEN_DATA__ = [{"id": "suumo_7", "name": "砧3丁目（祖師ヶ谷大蔵駅）", "price": 2780, "address": "東京都世田谷区砧3丁目", "station_access": ["祖師ヶ谷大蔵駅 徒歩14分"], "land_sqm": 54.06, "building_sqm": 50.49, "rooms": "3DK+S", "built_year": 1981, "age": 45, "structure": "木造2階建", "zoning": "第1種低層住居専用地域", "coverage_ratio": "50%/100%", "road_frontage": "北3.7m幅（接道幅3.5m）", "setback": null, "rebuild_possible": "43条許可要", "facing": "南面バルコニー", "parking": "カースペースあり", "url": "https://suumo.jp/chukoikkodate/tokyo/sc_setagaya/nc_78795889/", "source": "SUUMO", "lat": 35.6371511, "lng": 139.6128215, "scores": {"value": 67, "location": 63, "risk": 59, "total": 64}, "earthquake_standard": "新耐震", "warnings": []}, {"id": "suumo_5", "name": "給田4丁目（千歳烏山駅）", "price": 2480, "address": "東京都世田谷区給田4丁目", "station_access": ["千歳烏山駅 徒歩15分"], "land_sqm": 49.35, "building_sqm": 54.52, "rooms": "2LDK+2S", "built_year": 1968, "age": 58, "structure": "木造2階建", "zoning": "第1種低層住居専用地域", "coverage_ratio": "50%/100%", "road_frontage": "北3.8m幅（接道幅2.7m）", "setback": null, "rebuild_possible": "43条認定要", "url": "https://suumo.jp/chukoikkodate/tokyo/sc_setagaya/nc_20491888/", "source": "SUUMO", "lat": 35.6700869, "lng": 139.5910513, "scores": {"value": 71, "location": 59, "risk": 43, "total": 60}, "earthquake_standard": "旧耐震", "warnings": ["⚠️旧耐震基準"]}, {"id": "homes_1", "name": "上北沢5丁目（八幡山駅）", "price": 2980, "address": "東京都世田谷区上北沢5丁目", "station_access": ["八幡山駅 徒歩7分"], "land_sqm": 89.3, "building_sqm": 80.32, "rooms": "4DK", "built_year": 1972, "age": 54, "structure": null, "zoning": null, "coverage_ratio": null, "road_frontage": null, "setback": null, "rebuild_possible": false, "url": "https://www.homes.co.jp/kodate/b-35005610001250/", "source": "HOME'S", "lat": 35.6736533, "lng": 139.6166282, "scores": {"value": 84, "location": 54, "risk": 25, "total": 59}, "earthquake_standard": "旧耐震", "warnings": ["🚫再建築不可", "⚠️旧耐震基準"]}, {"id": "suumo_8", "name": "経堂1丁目（経堂駅）", "price": 2980, "address": "東京都世田谷区経堂1丁目", "station_access": ["経堂駅 徒歩4分"], "land_sqm": 83.17, "building_sqm": 81.74, "rooms": "3DK", "built_year": 1968, "age": 58, "structure": "木造2階建", "zoning": null, "coverage_ratio": "50%/100%", "road_frontage": "東3.2m幅（接道幅1.1m）", "setback": null, "rebuild_possible": false, "url": "https://suumo.jp/chukoikkodate/tokyo/sc_setagaya/nc_78166231/", "source": "SUUMO", "lat": 35.649472, "lng": 139.6359193, "scores": {"value": 75, "location": 60, "risk": 26, "total": 58}, "earthquake_standard": "旧耐震", "warnings": ["🚫再建築不可", "⚠️旧耐震基準"]}, {"id": "suumo_3", "name": "池尻3丁目 平屋（池尻大橋駅）", "price": 2100, "address": "東京都世田谷区池尻3丁目", "station_access": ["池尻大橋駅 徒歩7分"], "land_sqm": 20.91, "building_sqm": 8.66, "rooms": "ワンルーム", "built_year": 2017, "age": 9, "structure": "木造1階建", "zoning": "第1種住居地域", "coverage_ratio": "60%/200%", "road_frontage": "北4m幅、西4m幅", "setback": "7.22㎡含む", "rebuild_possible": null, "url": "https://suumo.jp/chukoikkodate/tokyo/sc_setagaya/nc_78014520/", "source": "SUUMO", "lat": 35.6503815, "lng": 139.6802626, "scores": {"value": 33, "location": 72, "risk": 76, "total": 57}, "earthquake_standard": "現行基準", "warnings": ["🌊洪水リスク（内水氾濫）"]}, {"id": "suumo_2", "name": "池尻3丁目 平屋（池尻大橋駅）", "price": 2100, "address": "東京都世田谷区池尻3丁目", "station_access": ["池尻大橋駅 徒歩9分", "三軒茶屋駅 徒歩12分"], "land_sqm": 20.91, "building_sqm": 8.66, "rooms": "ワンルーム", "built_year": 2017, "age": 9, "structure": "木造1階建", "zoning": "第1種住居地域", "coverage_ratio": "60%/160%", "road_frontage": "北西4m幅、北東4m幅", "setback": "済", "rebuild_possible": null, "url": "https://suumo.jp/chukoikkodate/tokyo/sc_setagaya/nc_78916182/", "source": "SUUMO", "lat": 35.6503815, "lng": 139.6802626, "scores": {"value": 33, "location": 66, "risk": 76, "total": 55}, "earthquake_standard": "現行基準", "warnings": ["🌊洪水リスク（内水氾濫）"]}, {"id": "suumo_1", "name": "池尻3丁目 平屋（池尻大橋駅）", "price": 2100, "address": "東京都世田谷区池尻3丁目", "station_access": ["池尻大橋駅 徒歩7分", "三軒茶屋駅 徒歩12分"], "land_sqm": 13.69, "building_sqm": 8.66, "rooms": "ワンルーム", "built_year": 2017, "age": 9, "structure": "木造1階建", "zoning": "第1種住居地域", "coverage_ratio": "60%/160%", "road_frontage": "北東4m幅、北西4m幅（角地）", "setback": "済", "rebuild_possible": null, "url": "https://suumo.jp/chukoikkodate/tokyo/sc_setagaya/nc_20339527/", "source": "SUUMO", "lat": 35.6503815, "lng": 139.6802626, "scores": {"value": 6, "location": 72, "risk": 76, "total": 47}, "earthquake_standard": "現行基準", "warnings": ["🌊洪水リスク（内水氾濫）"]}, {"id": "suumo_4", "name": "給田1丁目（仙川駅）", "price": 2298, "address": "東京都世田谷区給田1丁目", "station_access": ["仙川駅 徒歩9分"], "land_sqm": 39.0, "building_sqm": 36.36, "rooms": "2LDK+S", "built_year": 1964, "age": 62, "structure": "木造2階建", "zoning": "第1種住居地域", "coverage_ratio": "50%/100%", "road_frontage": "私道負担・道路 無", "setback": null, "rebuild_possible": false, "url": "https://suumo.jp/chukoikkodate/tokyo/sc_setagaya/nc_78424207/", "source": "SUUMO", "lat": 35.6620841, "lng": 139.5922422, "scores": {"value": 26, "location": 52, "risk": 30, "total": 36}, "earthquake_standard": "旧耐震", "warnings": ["🚫再建築不可", "⚠️旧耐震基準"]}, {"id": "suumo_6", "name": "北烏山7丁目（千歳烏山駅）", "price": 2500, "address": "東京都世田谷区北烏山7丁目", "station_access": ["千歳烏山駅 徒歩17分"], "land_sqm": 39.0, "building_sqm": 48.84, "rooms": "3DK", "built_year": 1963, "age": 63, "structure": "木造2階建", "zoning": "第1種低層住居専用地域", "coverage_ratio": "40%/80%", "road_frontage": "無", "setback": null, "rebuild_possible": false, "url": "https://suumo.jp/chukoikkodate/tokyo/sc_setagaya/nc_20267638/", "source": "SUUMO", "lat": 35.6784658, "lng": 139.5919767, "scores": {"value": 21, "location": 43, "risk": 30, "total": 31}, "earthquake_standard": "旧耐震", "warnings": ["🚫再建築不可", "⚠️旧耐震基準"]}];
+    const __BUKKEN_DATA__ = [
+  {
+    "id": "suumo_new_01",
+    "name": "オープンプレイス王子コンフォート",
+    "price": 4580,
+    "address": "東京都北区豊島2",
+    "station_access": [
+      "南北線 王子駅 徒歩13分"
+    ],
+    "land_sqm": 77.38,
+    "building_sqm": 102.15,
+    "rooms": "2LDK+S",
+    "built_year": null,
+    "age": 0,
+    "structure": "木造3階建",
+    "zoning": null,
+    "coverage_ratio": null,
+    "road_frontage": null,
+    "setback": null,
+    "rebuild_possible": null,
+    "land_rights": null,
+    "facing": null,
+    "parking": null,
+    "url": "https://suumo.jp/ikkodate/tokyo/sc_kita/nc_20484137/",
+    "source": "SUUMO（新築）",
+    "listed_date": null,
+    "agency": null,
+    "transaction_type": null,
+    "lat": 35.755,
+    "lng": 139.737,
+    "scores": {
+      "value": 95,
+      "location": 70,
+      "risk": 75,
+      "total": 81
+    },
+    "earthquake_standard": "現行基準",
+    "warnings": [
+      "液状化リスク"
+    ]
+  },
+  {
+    "id": "suumo_new_04",
+    "name": "北区王子本町2丁目 新築戸建",
+    "price": 6180,
+    "address": "東京都北区王子本町2",
+    "station_access": [
+      "JR京浜東北線 王子駅 徒歩9分"
+    ],
+    "land_sqm": 59.62,
+    "building_sqm": 111.4,
+    "rooms": "2LDK+S",
+    "built_year": null,
+    "age": 0,
+    "structure": null,
+    "zoning": null,
+    "coverage_ratio": null,
+    "road_frontage": null,
+    "setback": null,
+    "rebuild_possible": null,
+    "land_rights": null,
+    "facing": null,
+    "parking": null,
+    "url": "https://suumo.jp/ikkodate/tokyo/sc_kita/nc_78839207/",
+    "source": "SUUMO（新築）",
+    "listed_date": null,
+    "agency": null,
+    "transaction_type": null,
+    "lat": 35.759,
+    "lng": 139.734,
+    "scores": {
+      "value": 73,
+      "location": 80,
+      "risk": 85,
+      "total": 78
+    },
+    "earthquake_standard": "現行基準",
+    "warnings": []
+  },
+  {
+    "id": "suumo_new_08",
+    "name": "赤羽西3丁目 新築戸建",
+    "price": 7280,
+    "address": "東京都北区赤羽西3",
+    "station_access": [
+      "JR京浜東北線 赤羽駅 徒歩14分",
+      "JR京浜東北線 東十条駅 徒歩20分"
+    ],
+    "land_sqm": 79.82,
+    "building_sqm": 92.33,
+    "rooms": "2LDK+2S",
+    "built_year": null,
+    "age": 0,
+    "structure": "木造3階建",
+    "zoning": "1種中高",
+    "coverage_ratio": "60%",
+    "road_frontage": "東4.4m幅、私道負担無",
+    "setback": null,
+    "rebuild_possible": null,
+    "land_rights": "所有権",
+    "facing": null,
+    "parking": null,
+    "url": "https://suumo.jp/ikkodate/tokyo/sc_kita/nc_20469674/",
+    "source": "SUUMO（新築）",
+    "listed_date": null,
+    "agency": "(株)アドキャスト 池袋支店",
+    "transaction_type": "仲介",
+    "lat": 35.777,
+    "lng": 139.712,
+    "scores": {
+      "value": 71,
+      "location": 75,
+      "risk": 95,
+      "total": 78
+    },
+    "earthquake_standard": "現行基準",
+    "warnings": []
+  },
+  {
+    "id": "suumo_new_10",
+    "name": "Luxsis十条 Vol.5",
+    "price": 7290,
+    "address": "東京都北区上十条4",
+    "station_access": [
+      "JR埼京線 十条駅 徒歩11分"
+    ],
+    "land_sqm": 89.75,
+    "building_sqm": 99.75,
+    "rooms": "1LDK+3S",
+    "built_year": null,
+    "age": 0,
+    "structure": null,
+    "zoning": null,
+    "coverage_ratio": null,
+    "road_frontage": null,
+    "setback": null,
+    "rebuild_possible": null,
+    "land_rights": null,
+    "facing": null,
+    "parking": null,
+    "url": "https://suumo.jp/ikkodate/tokyo/sc_kita/nc_20290607/",
+    "source": "SUUMO（新築）",
+    "listed_date": null,
+    "agency": null,
+    "transaction_type": null,
+    "lat": 35.766,
+    "lng": 139.715,
+    "scores": {
+      "value": 80,
+      "location": 70,
+      "risk": 85,
+      "total": 78
+    },
+    "earthquake_standard": "現行基準",
+    "warnings": []
+  },
+  {
+    "id": "suumo_used_02",
+    "name": "北区志茂4丁目",
+    "price": 5280,
+    "address": "東京都北区志茂4",
+    "station_access": [
+      "東京メトロ南北線 志茂駅 徒歩6分"
+    ],
+    "land_sqm": 82.21,
+    "building_sqm": 115.36,
+    "rooms": "3LDK+S",
+    "built_year": 2022,
+    "age": 4,
+    "structure": null,
+    "zoning": null,
+    "coverage_ratio": null,
+    "road_frontage": null,
+    "setback": null,
+    "rebuild_possible": null,
+    "land_rights": null,
+    "facing": null,
+    "parking": null,
+    "url": "https://suumo.jp/chukoikkodate/tokyo/sc_kita/",
+    "source": "SUUMO（中古）",
+    "listed_date": null,
+    "agency": null,
+    "transaction_type": null,
+    "lat": 35.784,
+    "lng": 139.723,
+    "scores": {
+      "value": 93,
+      "location": 80,
+      "risk": 45,
+      "total": 76
+    },
+    "earthquake_standard": "現行基準",
+    "warnings": [
+      "🌊荒川氾濫リスク",
+      "液状化リスク"
+    ]
+  },
+  {
+    "id": "suumo_new_03",
+    "name": "オープンライブス赤羽岩淵ダイレクト",
+    "price": 5980,
+    "address": "東京都北区赤羽1",
+    "station_access": [
+      "JR高崎線 赤羽駅 徒歩9分"
+    ],
+    "land_sqm": 92.7,
+    "building_sqm": 91.59,
+    "rooms": "2LDK+2S",
+    "built_year": null,
+    "age": 0,
+    "structure": null,
+    "zoning": null,
+    "coverage_ratio": null,
+    "road_frontage": null,
+    "setback": null,
+    "rebuild_possible": null,
+    "land_rights": null,
+    "facing": null,
+    "parking": null,
+    "url": "https://suumo.jp/ikkodate/tokyo/sc_kita/nc_78898876/",
+    "source": "SUUMO（新築）",
+    "listed_date": null,
+    "agency": null,
+    "transaction_type": null,
+    "lat": 35.778,
+    "lng": 139.721,
+    "scores": {
+      "value": 90,
+      "location": 75,
+      "risk": 50,
+      "total": 75
+    },
+    "earthquake_standard": "現行基準",
+    "warnings": [
+      "🌊荒川氾濫リスク",
+      "液状化リスク"
+    ]
+  },
+  {
+    "id": "suumo_new_06",
+    "name": "北区中十条2丁目 新築戸建",
+    "price": 6480,
+    "address": "東京都北区中十条2",
+    "station_access": [
+      "JR埼京線 十条駅 徒歩5分",
+      "JR京浜東北線 東十条駅 徒歩6分",
+      "東京メトロ南北線 王子神谷駅 徒歩20分"
+    ],
+    "land_sqm": 60.42,
+    "building_sqm": 105.62,
+    "rooms": "3LDK",
+    "built_year": null,
+    "age": 0,
+    "structure": "木造3階建",
+    "zoning": "1種住居",
+    "coverage_ratio": "70%",
+    "road_frontage": "西5m幅",
+    "setback": null,
+    "rebuild_possible": true,
+    "land_rights": "賃借権（旧）新規20年",
+    "facing": "西向き",
+    "parking": "1階車庫あり",
+    "url": "https://suumo.jp/ikkodate/tokyo/sc_kita/nc_20142212/",
+    "source": "SUUMO（新築）",
+    "listed_date": null,
+    "agency": "モリモト・トラスト(株) 渋谷本店",
+    "transaction_type": "売主",
+    "lat": 35.765,
+    "lng": 139.725,
+    "scores": {
+      "value": 67,
+      "location": 70,
+      "risk": 90,
+      "total": 74
+    },
+    "earthquake_standard": "現行基準",
+    "warnings": [
+      "📋借地権"
+    ]
+  },
+  {
+    "id": "suumo_new_05",
+    "name": "北区上十条3丁目 新築戸建",
+    "price": 6480,
+    "address": "東京都北区上十条3",
+    "station_access": [
+      "JR埼京線 十条駅 徒歩8分",
+      "JR京浜東北線 東十条駅 徒歩14分",
+      "都営三田線 板橋本町駅 徒歩15分"
+    ],
+    "land_sqm": 68.4,
+    "building_sqm": 118.45,
+    "rooms": "2LDK+2S",
+    "built_year": null,
+    "age": 0,
+    "structure": "木造3階建",
+    "zoning": "1種住居",
+    "coverage_ratio": "70%",
+    "road_frontage": "道路幅3.7m〜4.1m",
+    "setback": "一部セットバック有",
+    "rebuild_possible": null,
+    "land_rights": "賃借権（旧）新規20年",
+    "facing": "東南〜南西向き",
+    "parking": null,
+    "url": "https://suumo.jp/ikkodate/tokyo/sc_kita/nc_20164304/",
+    "source": "SUUMO（新築）",
+    "listed_date": null,
+    "agency": "モリモト・トラスト(株) 渋谷本店",
+    "transaction_type": "仲介",
+    "lat": 35.764,
+    "lng": 139.72,
+    "scores": {
+      "value": 79,
+      "location": 65,
+      "risk": 70,
+      "total": 72
+    },
+    "earthquake_standard": "現行基準",
+    "warnings": [
+      "📋借地権"
+    ]
+  },
+  {
+    "id": "suumo_used_01",
+    "name": "北区西ケ原1丁目 店舗付き戸建",
+    "price": 4980,
+    "address": "東京都北区西ケ原1",
+    "station_access": [
+      "JR京浜東北線 上中里駅 徒歩10分",
+      "JR山手線 駒込駅 徒歩10分"
+    ],
+    "land_sqm": 57.49,
+    "building_sqm": 172.41,
+    "rooms": "4LDK",
+    "built_year": 1997,
+    "age": 29,
+    "structure": null,
+    "zoning": null,
+    "coverage_ratio": null,
+    "road_frontage": null,
+    "setback": null,
+    "rebuild_possible": null,
+    "land_rights": null,
+    "facing": null,
+    "parking": null,
+    "url": "https://suumo.jp/chukoikkodate/tokyo/sc_kita/",
+    "source": "SUUMO（中古）",
+    "listed_date": null,
+    "agency": null,
+    "transaction_type": null,
+    "lat": 35.743,
+    "lng": 139.742,
+    "scores": {
+      "value": 58,
+      "location": 80,
+      "risk": 85,
+      "total": 72
+    },
+    "earthquake_standard": "新耐震",
+    "warnings": []
+  },
+  {
+    "id": "suumo_used_07",
+    "name": "北区岩淵町 中古戸建",
+    "price": 6780,
+    "address": "東京都北区岩淵町",
+    "station_access": [
+      "東京メトロ南北線 赤羽岩淵駅 徒歩5分"
+    ],
+    "land_sqm": 81.18,
+    "building_sqm": 92.58,
+    "rooms": "2LDK+S",
+    "built_year": 2021,
+    "age": 5,
+    "structure": null,
+    "zoning": null,
+    "coverage_ratio": null,
+    "road_frontage": null,
+    "setback": null,
+    "rebuild_possible": null,
+    "land_rights": null,
+    "facing": null,
+    "parking": null,
+    "url": "https://suumo.jp/chukoikkodate/tokyo/sc_kita/",
+    "source": "SUUMO（中古）",
+    "listed_date": null,
+    "agency": null,
+    "transaction_type": null,
+    "lat": 35.786,
+    "lng": 139.724,
+    "scores": {
+      "value": 75,
+      "location": 85,
+      "risk": 45,
+      "total": 71
+    },
+    "earthquake_standard": "現行基準",
+    "warnings": [
+      "🌊荒川氾濫リスク",
+      "液状化リスク"
+    ]
+  },
+  {
+    "id": "suumo_new_11",
+    "name": "オープンライブス尾久ダイレクト",
+    "price": 7380,
+    "address": "東京都北区昭和町2",
+    "station_access": [
+      "JR高崎線 尾久駅 徒歩3分"
+    ],
+    "land_sqm": 57.21,
+    "building_sqm": 106.51,
+    "rooms": "2LDK+2S",
+    "built_year": null,
+    "age": 0,
+    "structure": null,
+    "zoning": null,
+    "coverage_ratio": null,
+    "road_frontage": null,
+    "setback": null,
+    "rebuild_possible": null,
+    "land_rights": null,
+    "facing": null,
+    "parking": null,
+    "url": "https://suumo.jp/ikkodate/tokyo/sc_kita/nc_79226420/",
+    "source": "SUUMO（新築）",
+    "listed_date": null,
+    "agency": null,
+    "transaction_type": null,
+    "lat": 35.748,
+    "lng": 139.742,
+    "scores": {
+      "value": 53,
+      "location": 80,
+      "risk": 85,
+      "total": 70
+    },
+    "earthquake_standard": "現行基準",
+    "warnings": []
+  },
+  {
+    "id": "suumo_new_09",
+    "name": "メルディア中里",
+    "price": 7280,
+    "address": "東京都北区中里3",
+    "station_access": [
+      "JR山手線 駒込駅 徒歩8分",
+      "JR京浜東北線 上中里駅 徒歩12分",
+      "JR京浜東北線 田端駅 徒歩13分"
+    ],
+    "land_sqm": 60.12,
+    "building_sqm": 101.85,
+    "rooms": "3LDK+S",
+    "built_year": null,
+    "age": 0,
+    "structure": "木造3階建",
+    "zoning": "1種中高",
+    "coverage_ratio": "60%",
+    "road_frontage": "南向き",
+    "setback": "約4.0mセットバック後",
+    "rebuild_possible": null,
+    "land_rights": "賃借権（旧）新規20年",
+    "facing": "南南東",
+    "parking": "ビルトインガレージ（12.01㎡）",
+    "url": "https://suumo.jp/ikkodate/tokyo/sc_kita/nc_78725635/",
+    "source": "SUUMO（新築）",
+    "listed_date": null,
+    "agency": "(株)メルディアリアルティ 池袋支店",
+    "transaction_type": "仲介",
+    "lat": 35.74,
+    "lng": 139.747,
+    "scores": {
+      "value": 56,
+      "location": 70,
+      "risk": 90,
+      "total": 69
+    },
+    "earthquake_standard": "現行基準",
+    "warnings": [
+      "📋借地権"
+    ]
+  },
+  {
+    "id": "snippet_athome_02",
+    "name": "赤羽西1丁目 新築戸建",
+    "price": 7090,
+    "address": "東京都北区赤羽西1",
+    "station_access": [
+      "JR京浜東北線 赤羽駅 徒歩圏内"
+    ],
+    "land_sqm": null,
+    "building_sqm": null,
+    "rooms": "2SLDK",
+    "built_year": null,
+    "age": 0,
+    "structure": "3階建",
+    "zoning": null,
+    "coverage_ratio": null,
+    "road_frontage": null,
+    "setback": null,
+    "rebuild_possible": null,
+    "land_rights": null,
+    "facing": null,
+    "parking": null,
+    "url": "https://www.athome.co.jp/kodate/tokyo/kita-city/list/",
+    "source": "アットホーム（検索スニペット）",
+    "listed_date": null,
+    "agency": null,
+    "transaction_type": null,
+    "lat": 35.779,
+    "lng": 139.715,
+    "scores": {
+      "value": 50,
+      "location": 70,
+      "risk": 95,
+      "total": 68
+    },
+    "earthquake_standard": "現行基準",
+    "warnings": []
+  },
+  {
+    "id": "suumo_used_06",
+    "name": "北区赤羽西6丁目 一戸建て",
+    "price": 5990,
+    "address": "東京都北区赤羽西6",
+    "station_access": [
+      "都営三田線 本蓮沼駅 徒歩12分"
+    ],
+    "land_sqm": 56.19,
+    "building_sqm": 83.61,
+    "rooms": "4LDK",
+    "built_year": 2012,
+    "age": 14,
+    "structure": null,
+    "zoning": null,
+    "coverage_ratio": null,
+    "road_frontage": null,
+    "setback": null,
+    "rebuild_possible": null,
+    "land_rights": null,
+    "facing": null,
+    "parking": null,
+    "url": "https://suumo.jp/chukoikkodate/tokyo/sc_kita/",
+    "source": "SUUMO（中古）",
+    "listed_date": null,
+    "agency": null,
+    "transaction_type": null,
+    "lat": 35.773,
+    "lng": 139.705,
+    "scores": {
+      "value": 54,
+      "location": 65,
+      "risk": 90,
+      "total": 67
+    },
+    "earthquake_standard": "現行基準",
+    "warnings": []
+  },
+  {
+    "id": "snippet_athome_01",
+    "name": "十条仲原4丁目 新築戸建",
+    "price": 7080,
+    "address": "東京都北区十条仲原4",
+    "station_access": [
+      "JR京浜東北線 東十条駅 徒歩圏内"
+    ],
+    "land_sqm": null,
+    "building_sqm": null,
+    "rooms": "4LDK",
+    "built_year": null,
+    "age": 0,
+    "structure": "3階建",
+    "zoning": null,
+    "coverage_ratio": null,
+    "road_frontage": null,
+    "setback": null,
+    "rebuild_possible": null,
+    "land_rights": null,
+    "facing": null,
+    "parking": null,
+    "url": "https://www.athome.co.jp/kodate/tokyo/kita-city/list/",
+    "source": "アットホーム（検索スニペット）",
+    "listed_date": null,
+    "agency": null,
+    "transaction_type": null,
+    "lat": 35.768,
+    "lng": 139.728,
+    "scores": {
+      "value": 50,
+      "location": 70,
+      "risk": 85,
+      "total": 66
+    },
+    "earthquake_standard": "現行基準",
+    "warnings": []
+  },
+  {
+    "id": "suumo_used_03",
+    "name": "北区豊島4丁目 戸建",
+    "price": 5930,
+    "address": "東京都北区豊島4",
+    "station_access": [
+      "都電荒川線 梶原駅 徒歩13分",
+      "JR京浜東北線 王子駅 徒歩18分"
+    ],
+    "land_sqm": 50.84,
+    "building_sqm": 87.53,
+    "rooms": "3LDK",
+    "built_year": 2021,
+    "age": 5,
+    "structure": null,
+    "zoning": null,
+    "coverage_ratio": null,
+    "road_frontage": null,
+    "setback": null,
+    "rebuild_possible": null,
+    "land_rights": null,
+    "facing": null,
+    "parking": null,
+    "url": "https://suumo.jp/chukoikkodate/tokyo/sc_kita/",
+    "source": "SUUMO（中古）",
+    "listed_date": null,
+    "agency": null,
+    "transaction_type": null,
+    "lat": 35.752,
+    "lng": 139.729,
+    "scores": {
+      "value": 56,
+      "location": 70,
+      "risk": 70,
+      "total": 64
+    },
+    "earthquake_standard": "現行基準",
+    "warnings": [
+      "液状化リスク"
+    ]
+  },
+  {
+    "id": "suumo_new_07",
+    "name": "オープンライブス志茂アクセス",
+    "price": 6980,
+    "address": "東京都北区志茂3",
+    "station_access": [
+      "東京メトロ南北線 志茂駅 徒歩7分",
+      "湘南新宿ライン 赤羽駅 徒歩20分",
+      "埼玉高速鉄道 赤羽岩淵駅 徒歩20分"
+    ],
+    "land_sqm": 65.87,
+    "building_sqm": 89.59,
+    "rooms": "3LDK+S",
+    "built_year": null,
+    "age": 0,
+    "structure": "木造3階建",
+    "zoning": "工業",
+    "coverage_ratio": "60%",
+    "road_frontage": "私道負担4.38㎡あり",
+    "setback": null,
+    "rebuild_possible": null,
+    "land_rights": "所有権",
+    "facing": null,
+    "parking": "小型車のみ対応",
+    "url": "https://suumo.jp/ikkodate/tokyo/sc_kita/nc_78898866/",
+    "source": "SUUMO（新築）",
+    "listed_date": null,
+    "agency": "(株)オープンハウス",
+    "transaction_type": "仲介",
+    "lat": 35.783,
+    "lng": 139.72,
+    "scores": {
+      "value": 62,
+      "location": 70,
+      "risk": 50,
+      "total": 62
+    },
+    "earthquake_standard": "現行基準",
+    "warnings": [
+      "🌊荒川氾濫リスク",
+      "液状化リスク",
+      "⚠️工業地域"
+    ]
+  },
+  {
+    "id": "openhouse_01",
+    "name": "ミラスモシリーズ北区志茂",
+    "price": 7480,
+    "address": "東京都北区志茂4",
+    "station_access": [
+      "東京メトロ南北線 志茂駅 徒歩6分"
+    ],
+    "land_sqm": null,
+    "building_sqm": null,
+    "rooms": "4LDK",
+    "built_year": null,
+    "age": 0,
+    "structure": null,
+    "zoning": null,
+    "coverage_ratio": null,
+    "road_frontage": null,
+    "setback": null,
+    "rebuild_possible": null,
+    "land_rights": null,
+    "facing": null,
+    "parking": null,
+    "url": "https://oh.openhouse-group.com/kanto/area/13117/",
+    "source": "オープンハウス",
+    "listed_date": null,
+    "agency": "(株)オープンハウス",
+    "transaction_type": null,
+    "lat": 35.784084,
+    "lng": 139.722715,
+    "scores": {
+      "value": 50,
+      "location": 80,
+      "risk": 50,
+      "total": 60
+    },
+    "earthquake_standard": "現行基準",
+    "warnings": [
+      "🌊荒川氾濫リスク",
+      "液状化リスク"
+    ]
+  },
+  {
+    "id": "openhouse_02",
+    "name": "ミラスモシリーズ北区浮間",
+    "price": 7680,
+    "address": "東京都北区浮間",
+    "station_access": [
+      "JR埼京線 北赤羽駅 徒歩8分"
+    ],
+    "land_sqm": null,
+    "building_sqm": null,
+    "rooms": "3LDK+S",
+    "built_year": null,
+    "age": 0,
+    "structure": null,
+    "zoning": null,
+    "coverage_ratio": null,
+    "road_frontage": null,
+    "setback": null,
+    "rebuild_possible": null,
+    "land_rights": null,
+    "facing": null,
+    "parking": null,
+    "url": "https://oh.openhouse-group.com/kanto/area/13117/",
+    "source": "オープンハウス",
+    "listed_date": null,
+    "agency": "(株)オープンハウス",
+    "transaction_type": null,
+    "lat": 35.788,
+    "lng": 139.685,
+    "scores": {
+      "value": 50,
+      "location": 80,
+      "risk": 50,
+      "total": 60
+    },
+    "earthquake_standard": "現行基準",
+    "warnings": [
+      "🌊荒川氾濫リスク",
+      "液状化リスク"
+    ]
+  },
+  {
+    "id": "suumo_new_02",
+    "name": "オープンライブス浮間ブライト",
+    "price": 5980,
+    "address": "東京都北区浮間3",
+    "station_access": [
+      "JR埼京線 北赤羽駅 徒歩6分"
+    ],
+    "land_sqm": 41.54,
+    "building_sqm": 74.36,
+    "rooms": "3LDK",
+    "built_year": null,
+    "age": 0,
+    "structure": null,
+    "zoning": null,
+    "coverage_ratio": null,
+    "road_frontage": null,
+    "setback": null,
+    "rebuild_possible": null,
+    "land_rights": null,
+    "facing": null,
+    "parking": null,
+    "url": "https://suumo.jp/ikkodate/tokyo/sc_kita/nc_78747485/",
+    "source": "SUUMO（新築）",
+    "listed_date": null,
+    "agency": null,
+    "transaction_type": null,
+    "lat": 35.789,
+    "lng": 139.683,
+    "scores": {
+      "value": 44,
+      "location": 80,
+      "risk": 50,
+      "total": 58
+    },
+    "earthquake_standard": "現行基準",
+    "warnings": [
+      "🌊荒川氾濫リスク",
+      "液状化リスク"
+    ]
+  },
+  {
+    "id": "suumo_used_05",
+    "name": "志茂5丁目（赤羽岩淵駅）",
+    "price": 5980,
+    "address": "東京都北区志茂5",
+    "station_access": [
+      "東京メトロ南北線 赤羽岩淵駅 徒歩10分"
+    ],
+    "land_sqm": 54.3,
+    "building_sqm": 85.25,
+    "rooms": "3LDK",
+    "built_year": 2005,
+    "age": 21,
+    "structure": null,
+    "zoning": null,
+    "coverage_ratio": null,
+    "road_frontage": null,
+    "setback": null,
+    "rebuild_possible": null,
+    "land_rights": null,
+    "facing": null,
+    "parking": null,
+    "url": "https://suumo.jp/chukoikkodate/tokyo/sc_kita/",
+    "source": "SUUMO（中古）",
+    "listed_date": null,
+    "agency": null,
+    "transaction_type": null,
+    "lat": 35.785,
+    "lng": 139.718,
+    "scores": {
+      "value": 48,
+      "location": 80,
+      "risk": 40,
+      "total": 57
+    },
+    "earthquake_standard": "現行基準",
+    "warnings": [
+      "🌊荒川氾濫リスク",
+      "液状化リスク"
+    ]
+  }
+];
     const PROPERTIES = (typeof __BUKKEN_DATA__ !== 'undefined') ? __BUKKEN_DATA__ : [
       {"id":"sample_1","name":"世田谷区成城6丁目 サンプル物件A","price":7980,"address":"東京都世田谷区成城6丁目","station_access":["成城学園前駅 徒歩5分"],"land_sqm":130.5,"building_sqm":105.2,"rooms":"4LDK","built_year":2020,"age":6,"structure":"木造2階建","zoning":"第一種低層住居専用地域","road_frontage":"南側 幅員6m 公道","rebuild_possible":true,"url":"#","source":"SUUMO","lat":35.6401,"lng":139.5988,"scores":{"value":72,"location":85,"risk":80,"total":78},"earthquake_standard":"現行基準","warnings":[]},
       {"id":"sample_2","name":"世田谷区等々力3丁目 サンプル物件B","price":6580,"address":"東京都世田谷区等々力3丁目","station_access":["等々力駅 徒歩8分"],"land_sqm":95.0,"building_sqm":82.3,"rooms":"3LDK","built_year":2015,"age":11,"structure":"木造2階建","zoning":"第一種低層住居専用地域","road_frontage":"東側 幅員4m 公道","rebuild_possible":true,"url":"#","source":"HOMES","lat":35.6078,"lng":139.6547,"scores":{"value":65,"location":70,"risk":75,"total":69},"earthquake_standard":"新耐震","warnings":[]},
@@ -529,16 +1329,16 @@
       const marker = markers[id];
       if (marker) {
         if (window.innerWidth <= 768) {
-          // モバイル: パネルを最小化して地図を大きく
           const filters = document.getElementById('filters');
+          const sidebar = document.getElementById('sidebar');
           if (!filters.classList.contains('collapsed')) {
             filters.classList.add('collapsed');
             document.getElementById('filter-toggle').textContent = '▶ 絞り込み条件';
+            sidebar.classList.remove('filters-open');
           }
-          setSidebarHeight(15);
           setTimeout(() => {
-            map.setView(marker.getLatLng(), 16);
-            marker.openPopup();
+            map.invalidateSize();
+            setTimeout(() => { map.setView(marker.getLatLng(), 16); marker.openPopup(); }, 100);
           }, 350);
         } else {
           map.setView(marker.getLatLng(), 16);
@@ -591,65 +1391,14 @@
     function toggleFilters() {
       const el = document.getElementById('filters');
       const toggle = document.getElementById('filter-toggle');
-      const propList = document.getElementById('property-list');
+      const sidebar = document.getElementById('sidebar');
       el.classList.toggle('collapsed');
       const isOpen = !el.classList.contains('collapsed');
       toggle.textContent = isOpen ? '▼ 絞り込み条件を閉じる' : '▶ 絞り込み条件';
       if (window.innerWidth <= 768) {
-        // フィルター開 → 物件リスト非表示、パネル拡大
-        // フィルター閉 → 物件リスト表示、パネルは中間位置に
-        propList.style.display = isOpen ? 'none' : '';
-        setSidebarHeight(isOpen ? 85 : 40);
+        sidebar.classList.toggle('filters-open', isOpen);
+        setTimeout(() => map.invalidateSize(), 350);
       }
-    }
-
-    // ========================================
-    // モバイル: ボトムシートのドラッグ操作
-    // ========================================
-    let isDragging = false, startY = 0, startH = 0;
-    const SNAP_POINTS = [15, 40, 85]; // vh: 最小 / 中間 / 最大
-
-    function setSidebarHeight(vh) {
-      const sidebar = document.getElementById('sidebar');
-      sidebar.style.height = vh + 'vh';
-      setTimeout(() => map.invalidateSize(), 300);
-    }
-
-    function snapToNearest(vh) {
-      return SNAP_POINTS.reduce((a, b) => Math.abs(b - vh) < Math.abs(a - vh) ? b : a);
-    }
-
-    function initDragHandle() {
-      if (window.innerWidth > 768) return;
-      const handle = document.getElementById('drag-handle');
-      const sidebar = document.getElementById('sidebar');
-
-      handle.addEventListener('touchstart', (e) => {
-        isDragging = true;
-        startY = e.touches[0].clientY;
-        startH = (sidebar.offsetHeight / window.innerHeight) * 100;
-        sidebar.style.transition = 'none';
-        e.preventDefault();
-      }, { passive: false });
-
-      document.addEventListener('touchmove', (e) => {
-        if (!isDragging) return;
-        const deltaY = startY - e.touches[0].clientY;
-        const deltaVh = (deltaY / window.innerHeight) * 100;
-        const newH = Math.max(10, Math.min(90, startH + deltaVh));
-        sidebar.style.height = newH + 'vh';
-      }, { passive: true });
-
-      document.addEventListener('touchend', () => {
-        if (!isDragging) return;
-        isDragging = false;
-        const sidebar = document.getElementById('sidebar');
-        sidebar.style.transition = 'height 0.25s ease';
-        const currentVh = (sidebar.offsetHeight / window.innerHeight) * 100;
-        const snapped = snapToNearest(currentVh);
-        setSidebarHeight(snapped);
-        // ドラッグではフィルターを開かない（物件リストだけ広がる）
-      });
     }
 
     function resetFilters() {
@@ -714,7 +1463,6 @@
     // ========================================
     initFilterUI();
     applyFilters();
-    initDragHandle();
 
     // モバイルではフィルターをデフォルトで閉じる
     if (window.innerWidth <= 768) {
@@ -728,10 +1476,10 @@
       if (validCoords.length > 0) {
         map.fitBounds(validCoords, { padding: [30, 30] });
       } else {
-        map.setView([35.6462, 139.6532], 14); // デフォルト: 世田谷区中心
+        map.setView([35.7650, 139.7200], 13); // デフォルト: 世田谷区中心
       }
     } else {
-      map.setView([35.6462, 139.6532], 14);
+      map.setView([35.7650, 139.7200], 13);
     }
   </script>
 </body>
