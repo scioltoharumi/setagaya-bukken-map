@@ -114,13 +114,70 @@
 
     /* レスポンシブ */
     @media (max-width: 768px) {
-      body { flex-direction: column; }
-      #sidebar { width: 100%; min-width: auto; height: 40vh; }
-      #map { height: 60vh; }
-      #filters { max-height: 30vh; }
-      .leaflet-popup-content { min-width: 220px; }
-      .popup-price { font-size: 17px; }
-      .popup-details { font-size: 12px; }
+      body { flex-direction: column-reverse; }
+
+      /* 地図を上部に全画面配置 */
+      #map { width: 100%; height: 55vh; flex: none; }
+
+      /* サイドバーを下部パネルに */
+      #sidebar {
+        width: 100%; min-width: auto; height: 45vh;
+        border-right: none; border-top: 2px solid #dee2e6;
+        transition: height 0.3s ease;
+      }
+      #sidebar.filters-open { height: 85vh; }
+
+      #sidebar-header { padding: 10px 16px; }
+      #sidebar-header h1 { font-size: 15px; }
+
+      /* フィルター: 開いたら大きく使いやすく */
+      #filters {
+        max-height: none; padding: 16px;
+        overflow-y: auto;
+      }
+      #filter-toggle {
+        padding: 12px 16px; font-size: 15px;
+        text-align: center;
+      }
+      .filter-group { margin-bottom: 16px; }
+      .filter-group > label { font-size: 15px; margin-bottom: 8px; }
+      .range-slider { gap: 10px; }
+      .range-slider input[type="number"] {
+        width: 100px; padding: 10px 12px;
+        font-size: 16px; /* 16px以上でiOSの自動ズームを防止 */
+        border-radius: 6px;
+      }
+      .range-slider span { font-size: 14px; }
+      .checkbox-group { gap: 10px 16px; }
+      .checkbox-group label {
+        font-size: 15px; padding: 6px 0;
+        min-height: 44px; /* Apple推奨タッチターゲット */
+      }
+      .checkbox-group input[type="checkbox"] {
+        width: 22px; height: 22px;
+        min-width: 22px;
+      }
+      .btn-reset { padding: 14px; font-size: 15px; border-radius: 8px; margin-top: 8px; }
+
+      /* ソート */
+      #sort-bar { padding: 8px 16px; }
+      #sort-bar label { font-size: 13px; }
+      #sort-bar select { font-size: 15px; padding: 8px; }
+
+      /* 物件カード */
+      .property-card { padding: 14px 16px; }
+      .property-card .name { font-size: 14px; }
+      .property-card .price { font-size: 19px; }
+      .property-card .details { font-size: 13px; }
+      .score-badge { font-size: 12px; padding: 3px 8px; }
+
+      /* ポップアップ */
+      .leaflet-popup-content { min-width: 240px; max-width: 300px; }
+      .popup-title { font-size: 14px; }
+      .popup-price { font-size: 18px; }
+      .popup-details { font-size: 12px; line-height: 1.6; }
+      .popup-scores .score-badge { font-size: 11px; }
+      .popup-link a { font-size: 14px; }
     }
   </style>
 </head>
@@ -458,8 +515,27 @@
     function focusProperty(id) {
       const marker = markers[id];
       if (marker) {
-        map.setView(marker.getLatLng(), 16);
-        marker.openPopup();
+        // モバイル: フィルターが開いていたら閉じてサイドバーを縮小
+        if (window.innerWidth <= 768) {
+          const filters = document.getElementById('filters');
+          const sidebar = document.getElementById('sidebar');
+          if (!filters.classList.contains('collapsed')) {
+            filters.classList.add('collapsed');
+            document.getElementById('filter-toggle').textContent = '▶ 絞り込み条件';
+            sidebar.classList.remove('filters-open');
+          }
+          // 地図リサイズ後にマーカーにフォーカス
+          setTimeout(() => {
+            map.invalidateSize();
+            setTimeout(() => {
+              map.setView(marker.getLatLng(), 16);
+              marker.openPopup();
+            }, 100);
+          }, 350);
+        } else {
+          map.setView(marker.getLatLng(), 16);
+          marker.openPopup();
+        }
       }
       document.querySelectorAll('.property-card').forEach(card => {
         card.classList.toggle('active', card.dataset.id === id);
@@ -507,8 +583,16 @@
     function toggleFilters() {
       const el = document.getElementById('filters');
       const toggle = document.getElementById('filter-toggle');
+      const sidebar = document.getElementById('sidebar');
       el.classList.toggle('collapsed');
-      toggle.textContent = el.classList.contains('collapsed') ? '▶ 絞り込み条件' : '▼ 絞り込み条件';
+      const isOpen = !el.classList.contains('collapsed');
+      toggle.textContent = isOpen ? '▼ 絞り込み条件を閉じる' : '▶ 絞り込み条件';
+      // モバイル: フィルター開閉でサイドバーを拡縮
+      if (window.innerWidth <= 768) {
+        sidebar.classList.toggle('filters-open', isOpen);
+        // フィルター閉じたら地図をリサイズ通知
+        setTimeout(() => map.invalidateSize(), 350);
+      }
     }
 
     function resetFilters() {
