@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>物件マップ - 東京都世田谷区</title>
+  <title>物件マップ - 東京都世田谷区（3000万円以下）</title>
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -115,16 +115,20 @@
     /* レスポンシブ */
     @media (max-width: 768px) {
       body { flex-direction: column; }
-      #sidebar { width: 100%; min-width: auto; height: 50vh; }
-      #map { height: 50vh; }
+      #sidebar { width: 100%; min-width: auto; height: 40vh; }
+      #map { height: 60vh; }
+      #filters { max-height: 30vh; }
+      .leaflet-popup-content { min-width: 220px; }
+      .popup-price { font-size: 17px; }
+      .popup-details { font-size: 12px; }
     }
   </style>
 </head>
 <body>
   <div id="sidebar">
     <div id="sidebar-header">
-      <h1>🏠 東京都世田谷区 戸建て物件マップ</h1>
-      <div class="subtitle">調査日: 2026-03-23</div>
+      <h1>🏠 東京都世田谷区 戸建て物件マップ（3000万円以下）</h1>
+      <div class="subtitle">調査日: 2026-03-24</div>
     </div>
     <div id="result-count">--件中 --件表示中</div>
     <div id="filter-toggle" onclick="toggleFilters()">▼ 絞り込み条件</div>
@@ -224,336 +228,23 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script>
     // ========================================
-    // 物件データ（マッパーエージェントが埋め込む）
+    // 物件データ
+    // マッパーエージェントが {{PROPERTIES_JSON}} を実データで置換する。
+    // テンプレート単体で開いた場合はサンプルデータで動作する。
     // ========================================
-    const PROPERTIES = [
-  {
-    "id": "suumo_1",
-    "name": "世田谷区桜1丁目 中古一戸建て",
-    "price": 7980,
-    "address": "東京都世田谷区桜1丁目",
-    "station_access": [
-      "宮の坂駅 徒歩3分"
-    ],
-    "land_sqm": 99.78,
-    "building_sqm": 106.51,
-    "rooms": "3LDK+S",
-    "built_year": 2021,
-    "age": 5,
-    "structure": null,
-    "zoning": null,
-    "road_frontage": null,
-    "rebuild_possible": null,
-    "url": "https://suumo.jp/chukoikkodate/tokyo/sc_setagaya/",
-    "source": "SUUMO",
-    "lat": 35.6454964,
-    "lng": 139.6414527,
-    "scores": {
-      "value": 66,
-      "location": 65,
-      "risk": 77,
-      "total": 68
-    },
-    "warnings": []
-  },
-  {
-    "id": "suumo_2",
-    "name": "世田谷区船橋4丁目 中古一戸建て",
-    "price": 7580,
-    "address": "東京都世田谷区船橋4丁目",
-    "station_access": [
-      "千歳船橋駅"
-    ],
-    "land_sqm": 115.02,
-    "building_sqm": null,
-    "rooms": "3LDK",
-    "built_year": 2005,
-    "age": 21,
-    "structure": null,
-    "zoning": null,
-    "road_frontage": null,
-    "rebuild_possible": null,
-    "url": "https://suumo.jp/chukoikkodate/tokyo/sc_setagaya/",
-    "source": "SUUMO",
-    "lat": 35.654657,
-    "lng": 139.6191233,
-    "scores": {
-      "value": 74,
-      "location": 56,
-      "risk": 70,
-      "total": 67
-    },
-    "warnings": []
-  },
-  {
-    "id": "suumo_5",
-    "name": "世田谷区北烏山7丁目 新築一戸建て",
-    "price": 7680,
-    "address": "東京都世田谷区北烏山7丁目",
-    "station_access": [
-      "千歳烏山駅 徒歩17分"
-    ],
-    "land_sqm": 81.68,
-    "building_sqm": 104.17,
-    "rooms": "4LDK",
-    "built_year": 2026,
-    "age": 0,
-    "structure": null,
-    "zoning": null,
-    "road_frontage": null,
-    "rebuild_possible": null,
-    "url": "https://suumo.jp/ikkodate/tokyo/sc_setagaya/",
-    "source": "SUUMO",
-    "lat": 35.675412,
-    "lng": 139.600059,
-    "scores": {
-      "value": 56,
-      "location": 44,
-      "risk": 70,
-      "total": 55
-    },
-    "warnings": []
-  },
-  {
-    "id": "suumo_8",
-    "name": "世田谷区船橋1丁目 中古一戸建て",
-    "price": 5480,
-    "address": "東京都世田谷区船橋1丁目",
-    "station_access": [
-      "千歳船橋駅 徒歩7分"
-    ],
-    "land_sqm": null,
-    "building_sqm": 63.52,
-    "rooms": "2LDK+S",
-    "built_year": 2009,
-    "age": 17,
-    "structure": null,
-    "zoning": null,
-    "road_frontage": null,
-    "rebuild_possible": null,
-    "url": "https://suumo.jp/chukoikkodate/tokyo/ek_24140/",
-    "source": "SUUMO",
-    "lat": 35.654893,
-    "lng": 139.618666,
-    "scores": {
-      "value": 39,
-      "location": 58,
-      "risk": 70,
-      "total": 53
-    },
-    "warnings": []
-  },
-  {
-    "id": "suumo_3",
-    "name": "世田谷区松原 新築一戸建て",
-    "price": 7280,
-    "address": "東京都世田谷区松原",
-    "station_access": [
-      "代田橋駅 徒歩3分"
-    ],
-    "land_sqm": null,
-    "building_sqm": null,
-    "rooms": "3LDK",
-    "built_year": 2026,
-    "age": 0,
-    "structure": null,
-    "zoning": null,
-    "road_frontage": null,
-    "rebuild_possible": null,
-    "url": "https://suumo.jp/ikkodate/tokyo/sc_setagaya/",
-    "source": "SUUMO",
-    "lat": 35.6633686,
-    "lng": 139.6492965,
-    "scores": {
-      "value": 15,
-      "location": 62,
-      "risk": 77,
-      "total": 47
-    },
-    "warnings": []
-  },
-  {
-    "id": "suumo_7",
-    "name": "世田谷区 新築一戸建て（1LDK+S）",
-    "price": 6780,
-    "address": "東京都世田谷区上野毛",
-    "station_access": [
-      "上野毛駅 徒歩10分"
-    ],
-    "land_sqm": null,
-    "building_sqm": 60.02,
-    "rooms": "1LDK+S",
-    "built_year": 2026,
-    "age": 0,
-    "structure": null,
-    "zoning": null,
-    "road_frontage": null,
-    "rebuild_possible": null,
-    "url": "https://suumo.jp/ikkodate/tokyo/sc_setagaya/",
-    "source": "SUUMO",
-    "lat": 35.613241,
-    "lng": 139.6367648,
-    "scores": {
-      "value": 23,
-      "location": 55,
-      "risk": 70,
-      "total": 46
-    },
-    "warnings": []
-  },
-  {
-    "id": "athome_1",
-    "name": "世田谷区宇奈根1丁目 新築一戸建て",
-    "price": 6180,
-    "address": "東京都世田谷区宇奈根1丁目",
-    "station_access": [
-      "二子玉川駅 バス8分+砧本村歩7分"
-    ],
-    "land_sqm": null,
-    "building_sqm": null,
-    "rooms": "3LDK",
-    "built_year": 2026,
-    "age": 0,
-    "structure": null,
-    "zoning": null,
-    "road_frontage": null,
-    "rebuild_possible": null,
-    "url": "https://www.athome.co.jp/kodate/theme/6000_7000_price/tokyo/setagaya-city/list",
-    "source": "athome",
-    "lat": 35.6192533,
-    "lng": 139.606128,
-    "scores": {
-      "value": 35,
-      "location": 45,
-      "risk": 58,
-      "total": 44
-    },
-    "warnings": [
-      "🌊 洪水ハザード高リスク"
-    ]
-  },
-  {
-    "id": "athome_2",
-    "name": "世田谷区梅丘2丁目 中古一戸建て",
-    "price": 7150,
-    "address": "東京都世田谷区梅丘2丁目",
-    "station_access": [
-      "豪徳寺駅"
-    ],
-    "land_sqm": null,
-    "building_sqm": null,
-    "rooms": "4SLDK",
-    "built_year": null,
-    "age": null,
-    "structure": null,
-    "zoning": null,
-    "road_frontage": null,
-    "rebuild_possible": null,
-    "url": "https://www.athome.co.jp/kodate/chuko/theme/7000_8000_price/tokyo/setagaya-city/list/",
-    "source": "athome",
-    "lat": 35.6503068,
-    "lng": 139.6524686,
-    "scores": {
-      "value": 18,
-      "location": 50,
-      "risk": 60,
-      "total": 40
-    },
-    "warnings": []
-  },
-  {
-    "id": "athome_3",
-    "name": "世田谷区上祖師谷3丁目 中古一戸建て",
-    "price": 7180,
-    "address": "東京都世田谷区上祖師谷3丁目",
-    "station_access": [
-      "成城学園前駅"
-    ],
-    "land_sqm": null,
-    "building_sqm": null,
-    "rooms": "4LDK",
-    "built_year": null,
-    "age": null,
-    "structure": null,
-    "zoning": null,
-    "road_frontage": null,
-    "rebuild_possible": null,
-    "url": "https://www.athome.co.jp/kodate/chuko/theme/7000_8000_price/tokyo/setagaya-city/list/",
-    "source": "athome",
-    "lat": 35.6548717,
-    "lng": 139.6009246,
-    "scores": {
-      "value": 16,
-      "location": 50,
-      "risk": 60,
-      "total": 39
-    },
-    "warnings": []
-  },
-  {
-    "id": "suumo_4",
-    "name": "世田谷区北烏山 新築一戸建て",
-    "price": 7680,
-    "address": "東京都世田谷区北烏山3丁目",
-    "station_access": [
-      "千歳烏山駅 徒歩17分"
-    ],
-    "land_sqm": null,
-    "building_sqm": 77.76,
-    "rooms": "3LDK",
-    "built_year": 2026,
-    "age": 0,
-    "structure": null,
-    "zoning": null,
-    "road_frontage": null,
-    "rebuild_possible": null,
-    "url": "https://suumo.jp/ikkodate/tokyo/sc_setagaya/nc_76696659/",
-    "source": "SUUMO",
-    "lat": 35.6759046,
-    "lng": 139.6009876,
-    "scores": {
-      "value": 8,
-      "location": 45,
-      "risk": 70,
-      "total": 36
-    },
-    "warnings": []
-  },
-  {
-    "id": "suumo_6",
-    "name": "世田谷区北烏山 新築一戸建て（80.31平米）",
-    "price": 7680,
-    "address": "東京都世田谷区北烏山",
-    "station_access": [
-      "千歳烏山駅 徒歩16分"
-    ],
-    "land_sqm": null,
-    "building_sqm": 80.31,
-    "rooms": "3LDK",
-    "built_year": 2026,
-    "age": 0,
-    "structure": null,
-    "zoning": null,
-    "road_frontage": null,
-    "rebuild_possible": null,
-    "url": "https://suumo.jp/ikkodate/tokyo/sc_setagaya/",
-    "source": "SUUMO",
-    "lat": 35.6759046,
-    "lng": 139.6009876,
-    "scores": {
-      "value": 8,
-      "location": 45,
-      "risk": 70,
-      "total": 36
-    },
-    "warnings": []
-  }
-];
+    const __BUKKEN_DATA__ = [{"id": "suumo_7", "name": "砧3丁目（祖師ヶ谷大蔵駅）", "price": 2780, "address": "東京都世田谷区砧3丁目", "station_access": ["祖師ヶ谷大蔵駅 徒歩14分"], "land_sqm": 54.06, "building_sqm": 50.49, "rooms": "3DK+S", "built_year": 1981, "age": 45, "structure": "木造2階建", "zoning": "第1種低層住居専用地域", "coverage_ratio": "50%/100%", "road_frontage": "北3.7m幅（接道幅3.5m）", "setback": null, "rebuild_possible": "43条許可要", "facing": "南面バルコニー", "parking": "カースペースあり", "url": "https://suumo.jp/chukoikkodate/tokyo/sc_setagaya/nc_78795889/", "source": "SUUMO", "lat": 35.6371511, "lng": 139.6128215, "scores": {"value": 67, "location": 63, "risk": 59, "total": 64}, "earthquake_standard": "新耐震", "warnings": []}, {"id": "suumo_5", "name": "給田4丁目（千歳烏山駅）", "price": 2480, "address": "東京都世田谷区給田4丁目", "station_access": ["千歳烏山駅 徒歩15分"], "land_sqm": 49.35, "building_sqm": 54.52, "rooms": "2LDK+2S", "built_year": 1968, "age": 58, "structure": "木造2階建", "zoning": "第1種低層住居専用地域", "coverage_ratio": "50%/100%", "road_frontage": "北3.8m幅（接道幅2.7m）", "setback": null, "rebuild_possible": "43条認定要", "url": "https://suumo.jp/chukoikkodate/tokyo/sc_setagaya/nc_20491888/", "source": "SUUMO", "lat": 35.6700869, "lng": 139.5910513, "scores": {"value": 71, "location": 59, "risk": 43, "total": 60}, "earthquake_standard": "旧耐震", "warnings": ["⚠️旧耐震基準"]}, {"id": "homes_1", "name": "上北沢5丁目（八幡山駅）", "price": 2980, "address": "東京都世田谷区上北沢5丁目", "station_access": ["八幡山駅 徒歩7分"], "land_sqm": 89.3, "building_sqm": 80.32, "rooms": "4DK", "built_year": 1972, "age": 54, "structure": null, "zoning": null, "coverage_ratio": null, "road_frontage": null, "setback": null, "rebuild_possible": false, "url": "https://www.homes.co.jp/kodate/b-35005610001250/", "source": "HOME'S", "lat": 35.6736533, "lng": 139.6166282, "scores": {"value": 84, "location": 54, "risk": 25, "total": 59}, "earthquake_standard": "旧耐震", "warnings": ["🚫再建築不可", "⚠️旧耐震基準"]}, {"id": "suumo_8", "name": "経堂1丁目（経堂駅）", "price": 2980, "address": "東京都世田谷区経堂1丁目", "station_access": ["経堂駅 徒歩4分"], "land_sqm": 83.17, "building_sqm": 81.74, "rooms": "3DK", "built_year": 1968, "age": 58, "structure": "木造2階建", "zoning": null, "coverage_ratio": "50%/100%", "road_frontage": "東3.2m幅（接道幅1.1m）", "setback": null, "rebuild_possible": false, "url": "https://suumo.jp/chukoikkodate/tokyo/sc_setagaya/nc_78166231/", "source": "SUUMO", "lat": 35.649472, "lng": 139.6359193, "scores": {"value": 75, "location": 60, "risk": 26, "total": 58}, "earthquake_standard": "旧耐震", "warnings": ["🚫再建築不可", "⚠️旧耐震基準"]}, {"id": "suumo_3", "name": "池尻3丁目 平屋（池尻大橋駅）", "price": 2100, "address": "東京都世田谷区池尻3丁目", "station_access": ["池尻大橋駅 徒歩7分"], "land_sqm": 20.91, "building_sqm": 8.66, "rooms": "ワンルーム", "built_year": 2017, "age": 9, "structure": "木造1階建", "zoning": "第1種住居地域", "coverage_ratio": "60%/200%", "road_frontage": "北4m幅、西4m幅", "setback": "7.22㎡含む", "rebuild_possible": null, "url": "https://suumo.jp/chukoikkodate/tokyo/sc_setagaya/nc_78014520/", "source": "SUUMO", "lat": 35.6503815, "lng": 139.6802626, "scores": {"value": 33, "location": 72, "risk": 76, "total": 57}, "earthquake_standard": "現行基準", "warnings": ["🌊洪水リスク（内水氾濫）"]}, {"id": "suumo_2", "name": "池尻3丁目 平屋（池尻大橋駅）", "price": 2100, "address": "東京都世田谷区池尻3丁目", "station_access": ["池尻大橋駅 徒歩9分", "三軒茶屋駅 徒歩12分"], "land_sqm": 20.91, "building_sqm": 8.66, "rooms": "ワンルーム", "built_year": 2017, "age": 9, "structure": "木造1階建", "zoning": "第1種住居地域", "coverage_ratio": "60%/160%", "road_frontage": "北西4m幅、北東4m幅", "setback": "済", "rebuild_possible": null, "url": "https://suumo.jp/chukoikkodate/tokyo/sc_setagaya/nc_78916182/", "source": "SUUMO", "lat": 35.6503815, "lng": 139.6802626, "scores": {"value": 33, "location": 66, "risk": 76, "total": 55}, "earthquake_standard": "現行基準", "warnings": ["🌊洪水リスク（内水氾濫）"]}, {"id": "suumo_1", "name": "池尻3丁目 平屋（池尻大橋駅）", "price": 2100, "address": "東京都世田谷区池尻3丁目", "station_access": ["池尻大橋駅 徒歩7分", "三軒茶屋駅 徒歩12分"], "land_sqm": 13.69, "building_sqm": 8.66, "rooms": "ワンルーム", "built_year": 2017, "age": 9, "structure": "木造1階建", "zoning": "第1種住居地域", "coverage_ratio": "60%/160%", "road_frontage": "北東4m幅、北西4m幅（角地）", "setback": "済", "rebuild_possible": null, "url": "https://suumo.jp/chukoikkodate/tokyo/sc_setagaya/nc_20339527/", "source": "SUUMO", "lat": 35.6503815, "lng": 139.6802626, "scores": {"value": 6, "location": 72, "risk": 76, "total": 47}, "earthquake_standard": "現行基準", "warnings": ["🌊洪水リスク（内水氾濫）"]}, {"id": "suumo_4", "name": "給田1丁目（仙川駅）", "price": 2298, "address": "東京都世田谷区給田1丁目", "station_access": ["仙川駅 徒歩9分"], "land_sqm": 39.0, "building_sqm": 36.36, "rooms": "2LDK+S", "built_year": 1964, "age": 62, "structure": "木造2階建", "zoning": "第1種住居地域", "coverage_ratio": "50%/100%", "road_frontage": "私道負担・道路 無", "setback": null, "rebuild_possible": false, "url": "https://suumo.jp/chukoikkodate/tokyo/sc_setagaya/nc_78424207/", "source": "SUUMO", "lat": 35.6620841, "lng": 139.5922422, "scores": {"value": 26, "location": 52, "risk": 30, "total": 36}, "earthquake_standard": "旧耐震", "warnings": ["🚫再建築不可", "⚠️旧耐震基準"]}, {"id": "suumo_6", "name": "北烏山7丁目（千歳烏山駅）", "price": 2500, "address": "東京都世田谷区北烏山7丁目", "station_access": ["千歳烏山駅 徒歩17分"], "land_sqm": 39.0, "building_sqm": 48.84, "rooms": "3DK", "built_year": 1963, "age": 63, "structure": "木造2階建", "zoning": "第1種低層住居専用地域", "coverage_ratio": "40%/80%", "road_frontage": "無", "setback": null, "rebuild_possible": false, "url": "https://suumo.jp/chukoikkodate/tokyo/sc_setagaya/nc_20267638/", "source": "SUUMO", "lat": 35.6784658, "lng": 139.5919767, "scores": {"value": 21, "location": 43, "risk": 30, "total": 31}, "earthquake_standard": "旧耐震", "warnings": ["🚫再建築不可", "⚠️旧耐震基準"]}];
+    const PROPERTIES = (typeof __BUKKEN_DATA__ !== 'undefined') ? __BUKKEN_DATA__ : [
+      {"id":"sample_1","name":"世田谷区成城6丁目 サンプル物件A","price":7980,"address":"東京都世田谷区成城6丁目","station_access":["成城学園前駅 徒歩5分"],"land_sqm":130.5,"building_sqm":105.2,"rooms":"4LDK","built_year":2020,"age":6,"structure":"木造2階建","zoning":"第一種低層住居専用地域","road_frontage":"南側 幅員6m 公道","rebuild_possible":true,"url":"#","source":"SUUMO","lat":35.6401,"lng":139.5988,"scores":{"value":72,"location":85,"risk":80,"total":78},"earthquake_standard":"現行基準","warnings":[]},
+      {"id":"sample_2","name":"世田谷区等々力3丁目 サンプル物件B","price":6580,"address":"東京都世田谷区等々力3丁目","station_access":["等々力駅 徒歩8分"],"land_sqm":95.0,"building_sqm":82.3,"rooms":"3LDK","built_year":2015,"age":11,"structure":"木造2階建","zoning":"第一種低層住居専用地域","road_frontage":"東側 幅員4m 公道","rebuild_possible":true,"url":"#","source":"HOMES","lat":35.6078,"lng":139.6547,"scores":{"value":65,"location":70,"risk":75,"total":69},"earthquake_standard":"新耐震","warnings":[]},
+      {"id":"sample_3","name":"世田谷区宇奈根1丁目 サンプル物件C","price":5480,"address":"東京都世田谷区宇奈根1丁目","station_access":["二子玉川駅 バス15分"],"land_sqm":110.0,"building_sqm":90.5,"rooms":"3LDK","built_year":2024,"age":2,"structure":"木造2階建","zoning":null,"road_frontage":null,"rebuild_possible":null,"url":"#","source":"athome","lat":35.6155,"lng":139.6280,"scores":{"value":55,"location":40,"risk":45,"total":48},"earthquake_standard":"現行基準","warnings":["🌊洪水ハザード（多摩川沿い）"]},
+      {"id":"sample_4","name":"世田谷区桜新町 サンプル物件D","price":7200,"address":"東京都世田谷区桜新町1丁目","station_access":["桜新町駅 徒歩3分"],"land_sqm":75.0,"building_sqm":98.0,"rooms":"3LDK+S","built_year":1978,"age":48,"structure":"RC造3階建","zoning":"第一種中高層住居専用地域","road_frontage":"南側 幅員8m 公道","rebuild_possible":true,"url":"#","source":"SUUMO","lat":35.6330,"lng":139.6450,"scores":{"value":60,"location":82,"risk":30,"total":58},"earthquake_standard":"旧耐震","warnings":["⚠️旧耐震基準（1981年以前）"]}
+    ];
 
     // ========================================
     // 地図初期化
     // ========================================
-    const map = L.map('map');
+    const map = L.map('map', { zoomControl: false });
+    L.control.zoom({ position: 'bottomright' }).addTo(map);
     L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
       attribution: '© OpenStreetMap contributors',
       maxZoom: 19
@@ -882,6 +573,12 @@
     // ========================================
     initFilterUI();
     applyFilters();
+
+    // モバイルではフィルターをデフォルトで閉じる
+    if (window.innerWidth <= 768) {
+      document.getElementById('filters').classList.add('collapsed');
+      document.getElementById('filter-toggle').textContent = '▶ 絞り込み条件';
+    }
 
     // 地図の表示範囲を全マーカーに合わせる
     if (PROPERTIES.length > 0) {
