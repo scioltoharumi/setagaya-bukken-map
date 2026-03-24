@@ -591,10 +591,14 @@
     function toggleFilters() {
       const el = document.getElementById('filters');
       const toggle = document.getElementById('filter-toggle');
+      const propList = document.getElementById('property-list');
       el.classList.toggle('collapsed');
       const isOpen = !el.classList.contains('collapsed');
       toggle.textContent = isOpen ? '▼ 絞り込み条件を閉じる' : '▶ 絞り込み条件';
       if (window.innerWidth <= 768) {
+        // フィルター開 → 物件リスト非表示、パネル拡大
+        // フィルター閉 → 物件リスト表示、パネルは中間位置に
+        propList.style.display = isOpen ? 'none' : '';
         setSidebarHeight(isOpen ? 85 : 40);
       }
     }
@@ -644,15 +648,7 @@
         const currentVh = (sidebar.offsetHeight / window.innerHeight) * 100;
         const snapped = snapToNearest(currentVh);
         setSidebarHeight(snapped);
-        // フィルターの開閉状態を同期
-        const filters = document.getElementById('filters');
-        if (snapped >= 70 && filters.classList.contains('collapsed')) {
-          filters.classList.remove('collapsed');
-          document.getElementById('filter-toggle').textContent = '▼ 絞り込み条件を閉じる';
-        } else if (snapped < 70 && !filters.classList.contains('collapsed')) {
-          filters.classList.add('collapsed');
-          document.getElementById('filter-toggle').textContent = '▶ 絞り込み条件';
-        }
+        // ドラッグではフィルターを開かない（物件リストだけ広がる）
       });
     }
 
