@@ -231,22 +231,16 @@
           <label><input type="checkbox" id="filter-map-bounds"> 地図範囲で絞り込み</label>
         </div>
       </div>
-      <button class="btn-reset" onclick="resetFilters()">条件クリア</button>
-    </div>
-    <!-- ハザードマップ -->
-    <div id="hazard-toggle" style="padding:8px 16px;border-bottom:1px solid #dee2e6;background:#fff3e0;">
-      <label style="display:block;font-size:13px;font-weight:600;color:#e65100;margin-bottom:6px;">🗺️ ハザードマップ重ねて表示</label>
-      <div style="display:flex;flex-wrap:wrap;gap:6px 14px;">
-        <label style="font-size:13px;display:flex;align-items:center;gap:4px;cursor:pointer;min-height:36px;">
-          <input type="checkbox" id="hazard-flood" onchange="toggleHazardLayer('flood', this.checked)" style="width:18px;height:18px;"> 🌊 洪水浸水想定
-        </label>
-        <label style="font-size:13px;display:flex;align-items:center;gap:4px;cursor:pointer;min-height:36px;">
-          <input type="checkbox" id="hazard-landslide" onchange="toggleHazardLayer('landslide', this.checked)" style="width:18px;height:18px;"> ⛰️ 土砂災害警戒
-        </label>
-        <label style="font-size:13px;display:flex;align-items:center;gap:4px;cursor:pointer;min-height:36px;">
-          <input type="checkbox" id="hazard-tsunami" onchange="toggleHazardLayer('tsunami', this.checked)" style="width:18px;height:18px;"> 🌊 高潮浸水想定
-        </label>
+      <!-- ハザードマップ（フィルター内に配置） -->
+      <div class="filter-group" style="margin-top:8px;padding-top:8px;border-top:1px solid #dee2e6;">
+        <label style="color:#e65100;">🗺️ ハザードマップ重ねて表示</label>
+        <div class="checkbox-group">
+          <label><input type="checkbox" id="hazard-flood" onchange="toggleHazardLayer('flood', this.checked)"> 🌊 洪水浸水想定</label>
+          <label><input type="checkbox" id="hazard-landslide" onchange="toggleHazardLayer('landslide', this.checked)"> ⛰️ 土砂災害警戒</label>
+          <label><input type="checkbox" id="hazard-tsunami" onchange="toggleHazardLayer('tsunami', this.checked)"> 🌊 高潮浸水想定</label>
+        </div>
       </div>
+      <button class="btn-reset" onclick="resetFilters()">条件クリア</button>
     </div>
     <!-- ソート -->
     <div id="sort-bar">
